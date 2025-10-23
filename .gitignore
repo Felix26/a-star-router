@@ -28,3 +28,9 @@
 *.swp
 *.swo
 .DS_Store
+
+# Externe Bibliotheken
+/external/
+
+# OSM-Files
+*.osm

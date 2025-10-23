@@ -1,9 +1,16 @@
 #pragma once
 
-#include <string>
+#include <vector>
 
-namespace router {
+#include "coordinates.hpp"
 
-std::string build_message(const std::string &name);
+namespace HelperFunctions
+{
+    inline constexpr double EARTH_RADIUS_KM = 6371.0;
 
-}  // namespace router
+    double haversine(double lat1_deg, double lon1_deg, double lat2_deg, double lon2_deg);
+
+    double haversine(const Coordinates &coord1, const Coordinates &coord2);
+
+    double calculatePathLength(const std::vector<Coordinates> &path);
+} // namespace HelperFunctions
