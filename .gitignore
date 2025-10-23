@@ -1,0 +1,30 @@
+# Build-Verzeichnisse
+/build/
+/cmake-build-*/
+
+# CMake generiert
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/install_manifest.txt
+/CTestTestfile.cmake
+/Makefile
+/compile_commands.json
+
+# Artefakte von Generatoren
+*.dir/
+*.obj
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Editor / IDE
+.vscode/
+.idea/
+*.user
+*.swp
+*.swo
+.DS_Store
