@@ -14,7 +14,7 @@ std::unordered_map<u_int64_t, Node> nodes;
 int main()
 {
     pugi::xml_document doc;
-    if (doc.load_file("/home/felixm/Desktop/Studienarbeit/Router/testdata/neureut.osm"))
+    if (doc.load_file("/home/felixm/Desktop/Studienarbeit/Router/testdata/karlsruhe_stadt.osm"))
     {
         for (const auto &node : doc.select_nodes("/osm/node"))
         {
@@ -37,9 +37,17 @@ int main()
                     
                     for (const auto &node : way.node().children("nd"))
                     {
-                        //std::cout << "  Node ref: " << node.attribute("ref").value() << "\n";
-                        //std::cout << "    Coordinates: " << nodes.at(std::stoull(node.attribute("ref").value())).getCoordinates() << "\n";
-                        path.push_back(nodes.at(std::stoull(node.attribute("ref").value())).getCoordinates());
+                        try
+                        {
+                            auto &nodeFromList = nodes.at(std::stoull(node.attribute("ref").value()));
+                            nodeFromList.trackcount++;
+                            path.push_back(nodeFromList.getCoordinates());
+                        }
+                        catch (const std::out_of_range &e)
+                        {
+                            std::cerr << "Node with ID " << node.attribute("ref").value() << " not found.\n";
+                            continue;
+                        }
                     }
 
                     std::cout << "  Path Length: " << HelperFunctions::calculatePathLength(path) << " m\n";

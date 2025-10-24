@@ -2,18 +2,20 @@
 
 #include "coordinates.hpp"
 
+#include <cstdint>
+
 class Node
 {
     public:
-        Node(int id, double latitude, double longitude)
+        Node(uint64_t id, double latitude, double longitude)
             : id(id), coordinates(latitude, longitude) {}
 
-        int getId() const { return id; }
+        uint64_t getId() const { return id; }
         Coordinates getCoordinates() const { return coordinates; }
 
         int trackcount = 0;
         
     private:
-        int id;
+        uint64_t id;
         Coordinates coordinates;
 };
