@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(router_core STATIC
   src/library.cpp
-  src/node.cpp
+  src/osmnode.cpp
   src/coordinates.cpp
   src/osmway.cpp
 )
