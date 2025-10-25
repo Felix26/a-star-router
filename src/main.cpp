@@ -8,8 +8,10 @@
 
 #include "library.hpp"
 #include "node.hpp"
+#include "way.hpp"
 
 std::unordered_map<u_int64_t, Node> nodes;
+std::unordered_map<uint64_t, Way> ways;
 
 int main()
 {
@@ -31,9 +33,9 @@ int main()
                 // if current way describes a highway (find out by searching tags)
                 if (std::string(tag.attribute("k").value()) == "highway")
                 {
+                    uint64_t id = std::stoull(way.node().attribute("id").value());
+                    ways.emplace(id, Way(id));
                     std::cout << "Way id: " << way.node().attribute("id").value() << "\n";
-
-                    std::vector<Coordinates> path;
                     
                     for (const auto &node : way.node().children("nd"))
                     {
@@ -41,7 +43,7 @@ int main()
                         {
                             auto &nodeFromList = nodes.at(std::stoull(node.attribute("ref").value()));
                             nodeFromList.trackcount++;
-                            path.push_back(nodeFromList.getCoordinates());
+                            ways.at(id).addNode(nodeFromList);
                         }
                         catch (const std::out_of_range &e)
                         {
@@ -50,12 +52,30 @@ int main()
                         }
                     }
 
-                    std::cout << "  Path Length: " << HelperFunctions::calculatePathLength(path) << " m\n";
+                    std::cout << "  Path Length: " << ways.at(id).calculateWayLength() << " m\n";
 
                     std::cout << "  Tag: " << tag.attribute("k").value() << " = " << tag.attribute("v").value() << "\n";
                     break;
                 }
             }
+        }
+
+        // Clean up empty nodes
+        for(auto it = nodes.begin(); it != nodes.end(); /* */)
+        {
+            if(it->second.trackcount == 0) 
+            {
+                it = nodes.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        for(const auto node : nodes)
+        {
+            std::cout << "Node id " << node.first << " has " << node.second.trackcount << " ways.\n"; 
         }
     }
 }
