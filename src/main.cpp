@@ -23,16 +23,7 @@ int main()
 {
     readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/karlsruhe_stadt.osm");
 
-    for(auto &node : nodes)
-    {
-        graph.addOsmNode(node.second);
-    }
-
-    for(auto &way : ways)
-    {
-        graph.addOsmWay(way.second);
-    }
-
+    createGraph();
     //graph.printGraph();
 
     std::cout << "Original Way Count: " << ways.size() << "\n";
@@ -114,5 +105,18 @@ void readOSMFile(const std::string &filepath)
     {
         std::cerr << "Error reading OSM file!\n"; 
         exit(1);
+    }
+}
+
+void createGraph()
+{
+    for(auto &node : nodes)
+    {
+        graph.addOsmNode(node.second);
+    }
+
+    for(auto &way : ways)
+    {
+        graph.addOsmWay(way.second);
     }
 }
