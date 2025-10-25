@@ -21,7 +21,7 @@ void readOSMFile(const std::string &filepath);
 
 int main()
 {
-    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/neureut.osm");
+    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/karlsruhe_stadt.osm");
 
     for(auto &node : nodes)
     {
@@ -33,7 +33,7 @@ int main()
         graph.addOsmWay(way.second);
     }
 
-    graph.printGraph();
+    //graph.printGraph();
 
     std::cout << "Original Way Count: " << ways.size() << "\n";
     std::cout << "Original Node Count: " << nodes.size() << "\n";

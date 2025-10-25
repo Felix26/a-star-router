@@ -40,6 +40,8 @@ void Graph::addOsmWay(OsmWay &way)
             uint64_t wayId = way.getId() | (subWayId++ << 60);
 
             mEdges.emplace(wayId, Edge(wayId, waylength, fromNode, toNode, path));
+            fromNode.edges.push_back(mEdges.at(wayId));
+            toNode.edges.push_back(mEdges.at(wayId));
 
             startIndex = index;
         }
@@ -59,7 +61,12 @@ void Graph::printGraph()
     
     for(const auto &node : mNodes)
     {
-        std::cout << "Node ID: " << node.first << ", Coordinates: " << node.second.getCoordinates() << ", Is Edge: " << (node.second.isEdge ? "Yes" : "No") << "\n";
+        std::cout << "Node ID: " << node.first << ", Coordinates: " << node.second.getCoordinates() << ", Connected Edges: ";
+        for(const auto &edge : node.second.edges)
+        {
+            std::cout << edge.get().getId() << " ";
+        }
+        std::cout << "\n";
     }
 
     std::cout << "Edge Count: " << mEdges.size() << "\n";

@@ -9,9 +9,11 @@
 class Edge
 {
     public:
-        Edge(uint64_t id, double waylength, Node &from, Node &to, std::vector<Coordinates> path) : mId(id), mWaylength(waylength), mNodes{std::ref(from), std::ref(to)}, mPath(std::move(path)) {}
+        Edge(uint64_t id, double waylength, Node &from, Node &to, std::vector<Coordinates> path);
 
         double calculateWayLength() const { return mWaylength; }
+
+        const uint64_t getId() const { return mId; }
 
     private:
         const uint64_t mId;
