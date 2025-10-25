@@ -25,7 +25,6 @@ void Graph::addOsmWay(OsmWay &way)
         if(way.getNodes().at(index).get().isEdge)
         {
             // create edge between startIndex and index
-            std::cout << "Creating edge from node " << way.getNodes().at(startIndex).get().getId() << " to node " << way.getNodes().at(index).get().getId() << "\n";
             Node &fromNode = mNodes.at(way.getNodes().at(startIndex).get().getId());
             Node &toNode = mNodes.at(way.getNodes().at(index).get().getId());
 
@@ -40,7 +39,7 @@ void Graph::addOsmWay(OsmWay &way)
             // First sub-way gets to keep original ID; subsequent IDs use 4 bits for sub-way index, 60 bits for way ID are copied
             uint64_t wayId = way.getId() | (subWayId++ << 60);
 
-            mEdges.emplace(wayId, Edge(wayId, waylength, fromNode, toNode));
+            mEdges.emplace(wayId, Edge(wayId, waylength, fromNode, toNode, path));
 
             startIndex = index;
         }
