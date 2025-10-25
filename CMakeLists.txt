@@ -22,6 +22,9 @@ add_library(router_core STATIC
   src/osmnode.cpp
   src/coordinates.cpp
   src/osmway.cpp
+  src/graph.cpp
+  src/node.cpp
+  src/edge.cpp
 )
 target_include_directories(router_core
   PUBLIC
