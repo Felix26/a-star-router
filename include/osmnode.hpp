@@ -10,12 +10,13 @@ class OsmNode
         OsmNode(uint64_t id, double latitude, double longitude)
             : id(id), coordinates(latitude, longitude) {}
 
-        uint64_t getId() const { return id; }
+        const uint64_t getId() const { return id; }
         Coordinates getCoordinates() const { return coordinates; }
 
-        int trackcount = 0;
+        bool isVisited = false;
+        bool isEdge = false;
         
-    private:
+    protected:
         uint64_t id;
         Coordinates coordinates;
 };

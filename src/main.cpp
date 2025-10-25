@@ -7,23 +7,51 @@
 #include <pugixml.hpp>
 
 #include "library.hpp"
-#include "node.hpp"
-#include "way.hpp"
+#include "osmnode.hpp"
+#include "osmway.hpp"
 
-std::unordered_map<u_int64_t, Node> nodes;
+#include "graph.hpp"
+
+std::unordered_map<u_int64_t, OsmNode> nodes;
 std::unordered_map<uint64_t, OsmWay> ways;
+
+Graph graph;
+
+void readOSMFile(const std::string &filepath);
 
 int main()
 {
+    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/neureut.osm");
+
+    for(auto &node : nodes)
+    {
+        graph.addOsmNode(node.second);
+    }
+
+    for(auto &way : ways)
+    {
+        graph.addOsmWay(way.second);
+    }
+
+    graph.printGraph();
+
+    std::cout << "Original Way Count: " << ways.size() << "\n";
+    std::cout << "Original Node Count: " << nodes.size() << "\n";
+
+    return 0;
+}
+
+void readOSMFile(const std::string &filepath)
+{
     pugi::xml_document doc;
-    if (doc.load_file("/home/felixm/Desktop/Studienarbeit/Router/testdata/karlsruhe_stadt.osm"))
+    if (doc.load_file(filepath.c_str()))
     {
         for (const auto &node : doc.select_nodes("/osm/node"))
         {
             u_int64_t id = std::stoull(node.node().attribute("id").value());
             double lat = std::stod(node.node().attribute("lat").value());
             double lon = std::stod(node.node().attribute("lon").value());
-            nodes.emplace(id, Node(id, lat, lon));
+            nodes.emplace(id, OsmNode(id, lat, lon));
         }
 
         for(const auto &way : doc.select_nodes("/osm/way"))
@@ -35,14 +63,14 @@ int main()
                 {
                     uint64_t id = std::stoull(way.node().attribute("id").value());
                     ways.emplace(id, OsmWay(id));
-                    std::cout << "Way id: " << way.node().attribute("id").value() << "\n";
+                    //std::cout << "Way id: " << way.node().attribute("id").value() << "\n";
                     
                     for (const auto &node : way.node().children("nd"))
                     {
                         try
                         {
                             auto &nodeFromList = nodes.at(std::stoull(node.attribute("ref").value()));
-                            nodeFromList.trackcount++;
+                            nodeFromList.isVisited = true;
                             ways.at(id).addNode(nodeFromList);
                         }
                         catch (const std::out_of_range &e)
@@ -52,9 +80,18 @@ int main()
                         }
                     }
 
-                    std::cout << "  Path Length: " << ways.at(id).calculateWayLength() << " m\n";
+                    if(ways.at(id).getNodes().size() < 2)
+                    {
+                        //std::cout << "  Skipping way with less than 2 nodes.\n";
+                        break;
+                    }
 
-                    std::cout << "  Tag: " << tag.attribute("k").value() << " = " << tag.attribute("v").value() << "\n";
+                    ways.at(id).getNodes().front().get().isEdge = true;
+                    ways.at(id).getNodes().back().get().isEdge = true;
+
+                    //std::cout << "  Path Length: " << ways.at(id).calculateWayLength() << " m\n";
+
+                    //std::cout << "  Tag: " << tag.attribute("k").value() << " = " << tag.attribute("v").value() << "\n";
                     break;
                 }
             }
@@ -63,7 +100,7 @@ int main()
         // Clean up empty nodes
         for(auto it = nodes.begin(); it != nodes.end(); /* */)
         {
-            if(it->second.trackcount == 0) 
+            if(it->second.isVisited == false) 
             {
                 it = nodes.erase(it);
             }
@@ -72,10 +109,10 @@ int main()
                 ++it;
             }
         }
-
-        for(const auto &node : nodes)
-        {
-            std::cout << "Node id " << node.first << " has " << node.second.trackcount << " ways.\n"; 
-        }
+    }
+    else
+    {
+        std::cerr << "Error reading OSM file!\n"; 
+        exit(1);
     }
 }

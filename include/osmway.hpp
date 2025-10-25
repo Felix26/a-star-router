@@ -12,7 +12,9 @@ class OsmWay
 
         void addNode(OsmNode &node);
 
-        double calculateWayLength() const;
+        const std::vector<std::reference_wrapper<OsmNode>> &getNodes() { return mNodes; }
+
+        const uint64_t getId() const {return mId;}
 
     private:
         uint64_t mId;
