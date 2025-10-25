@@ -11,7 +11,7 @@
 #include "way.hpp"
 
 std::unordered_map<u_int64_t, Node> nodes;
-std::unordered_map<uint64_t, Way> ways;
+std::unordered_map<uint64_t, OsmWay> ways;
 
 int main()
 {
@@ -34,7 +34,7 @@ int main()
                 if (std::string(tag.attribute("k").value()) == "highway")
                 {
                     uint64_t id = std::stoull(way.node().attribute("id").value());
-                    ways.emplace(id, Way(id));
+                    ways.emplace(id, OsmWay(id));
                     std::cout << "Way id: " << way.node().attribute("id").value() << "\n";
                     
                     for (const auto &node : way.node().children("nd"))
@@ -73,7 +73,7 @@ int main()
             }
         }
 
-        for(const auto node : nodes)
+        for(const auto &node : nodes)
         {
             std::cout << "Node id " << node.first << " has " << node.second.trackcount << " ways.\n"; 
         }

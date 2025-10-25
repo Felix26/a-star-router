@@ -4,10 +4,10 @@
 
 #include <cstdint>
 
-class Node
+class OsmNode
 {
     public:
-        Node(uint64_t id, double latitude, double longitude)
+        OsmNode(uint64_t id, double latitude, double longitude)
             : id(id), coordinates(latitude, longitude) {}
 
         uint64_t getId() const { return id; }

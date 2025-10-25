@@ -21,7 +21,7 @@ add_library(router_core STATIC
   src/library.cpp
   src/node.cpp
   src/coordinates.cpp
-  src/way.cpp
+  src/osmway.cpp
 )
 target_include_directories(router_core
   PUBLIC

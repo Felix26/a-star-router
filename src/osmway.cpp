@@ -1,16 +1,16 @@
-#include "way.hpp"
+#include "osmway.hpp"
 
 #include <vector>
 
 #include "coordinates.hpp"
 #include "library.hpp"
 
-void Way::addNode(Node &node)
+void OsmWay::addNode(OsmNode &node)
 {
     mNodes.push_back(node);
 }
 
-double Way::calculateWayLength() const
+double OsmWay::calculateWayLength() const
 {
     std::vector<Coordinates> path;
 
