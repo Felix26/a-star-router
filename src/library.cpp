@@ -2,6 +2,11 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <iomanip>
 
 namespace HelperFunctions
 {
@@ -48,5 +53,42 @@ namespace HelperFunctions
         }
 
         return totalLength;
+    }
+
+    void exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename)
+    {
+        std::ofstream file(filename);
+        if (!file.is_open())
+        {
+            std::cerr << "Error opening file for writing: " << filename << "\n";
+            return;
+        }
+
+        file << "{\n";
+        file << "  \"type\": \"FeatureCollection\",\n";
+        file << "  \"features\": [\n";
+        file << "    {\n";
+        file << "      \"type\": \"Feature\",\n";
+        file << "      \"geometry\": {\n";
+        file << "        \"type\": \"LineString\",\n";
+        file << "        \"coordinates\": [\n";
+
+        for (size_t i = 0; i < path.size(); ++i)
+        {
+            const auto &[id, coord] = path[i];
+            file << "          [" << std::fixed << std::setprecision(7) << coord.getLongitude() << ", " << coord.getLatitude() << "]";
+            if (i < path.size() - 1)
+                file << ",";
+            file << "\n";
+        }
+
+        file << "        ]\n";
+        file << "      },\n";
+        file << "      \"properties\": {}\n";
+        file << "    }\n";
+        file << "  ]\n";
+        file << "}\n";
+
+        file.close();
     }
 } // namespace HelperFunctions

@@ -24,7 +24,7 @@ void createGraph();
 int main()
 {
     srand(24);
-    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/karlsruhe_stadt.osm");
+    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/neureut.osm");
 
     createGraph();
     //graph.printGraph();
@@ -43,14 +43,7 @@ int main()
     {
         auto path = graph.aStar(ids.at(rand() % nodeListSize), ids.at(rand() % nodeListSize));
 
-        std::cout << "Route: ";
-        double length = 0.0;
-        for (auto id : path)
-        {
-            auto &node = nodes.at(id);
-            std::cout << id << " (" << node.getCoordinates() << "\n";
-        }
-        std::cout << "Länge: " << path.size() << " Knoten\n";
+        HelperFunctions::exportPathToGeoJSON(path, "astar_path_" + std::to_string(i) + ".geojson");
     }
 
     std::cout << "Original Way Count: " << ways.size() << "\n";
@@ -93,7 +86,7 @@ void readOSMFile(const std::string &filepath)
                         }
                         catch (const std::out_of_range &e)
                         {
-                            //std::cerr << "Node with ID " << node.attribute("ref").value() << " not found.\n";
+                            std::cerr << "Node with ID " << node.attribute("ref").value() << " not found.\n";
                             continue;
                         }
                     }

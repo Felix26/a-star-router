@@ -16,7 +16,7 @@ class Graph
 
         void printGraph();
 
-        std::vector<uint64_t> aStar(uint64_t startId, uint64_t goalId);
+        std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId);
 
         const std::unordered_map<uint64_t, Node> &getNodes() const { return mNodes; }
 

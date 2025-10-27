@@ -19,6 +19,8 @@ class Node : public OsmNode
         double f = std::numeric_limits<double>::infinity();  // estimated total cost
         uint64_t parent = 0;                                 // predecessor node id
         bool visited = false;
+        const Edge *parentEdge = nullptr;                    // edge used to reach this node
+        bool parentEdgeReversed = false;                     // traversal direction flag
 
     private:
 };

@@ -18,6 +18,8 @@ class Edge
         std::reference_wrapper<Node> from() const { return mNodes[0]; }
         std::reference_wrapper<Node> to() const { return mNodes[1]; }
 
+        const std::vector<Coordinates> &getPath() const { return mPath; }
+
     private:
         const uint64_t mId;
         const double mWaylength;

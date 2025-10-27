@@ -83,7 +83,7 @@ double Graph::heuristic(const Node &a, const Node &b)
     return HelperFunctions::haversine(a.getCoordinates(), b.getCoordinates());
 }
 
-std::vector<uint64_t> Graph::aStar(uint64_t startId, uint64_t goalId)
+std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, uint64_t goalId)
 {
     // Alle Knoten zurücksetzen (für wiederholte Nutzung)
     for (auto &[id, node] : mNodes)
@@ -92,6 +92,8 @@ std::vector<uint64_t> Graph::aStar(uint64_t startId, uint64_t goalId)
         node.f = std::numeric_limits<double>::infinity();
         node.visited = false;
         node.parent = 0;
+        node.parentEdge = nullptr;
+        node.parentEdgeReversed = false;
     }
 
     Node &start = mNodes.at(startId);
@@ -135,6 +137,8 @@ std::vector<uint64_t> Graph::aStar(uint64_t startId, uint64_t goalId)
             if (tentativeG < neighbor.g)
             {
                 neighbor.parent = currentId;
+                neighbor.parentEdge = &edge;
+                neighbor.parentEdgeReversed = (edge.to().get().getId() == currentId);
                 neighbor.g = tentativeG;
                 neighbor.f = tentativeG + Graph::heuristic(neighbor, goal);
                 openSet.emplace(neighbor.f, neighbor.getId());
@@ -143,9 +147,43 @@ std::vector<uint64_t> Graph::aStar(uint64_t startId, uint64_t goalId)
     }
 
     // Pfad rekonstruieren
-    std::vector<uint64_t> path;
-    for (uint64_t nodeId = goalId; nodeId != 0; nodeId = mNodes.at(nodeId).parent)
-        path.push_back(nodeId);
+    std::vector<std::tuple<uint64_t, Coordinates>> path;
+    for (uint64_t nodeId = goalId;; nodeId = mNodes.at(nodeId).parent)
+    {
+        if (nodeId == 0)
+        {
+            std::cerr << "No path found from " << startId << " to " << goalId << "\n";
+            return std::vector<std::tuple<uint64_t, Coordinates>>(); // Kein Pfad gefunden
+        }
+        const Node &currentNode = mNodes.at(nodeId);
+        path.emplace_back(nodeId, currentNode.getCoordinates());
+
+        if (nodeId == startId)
+            break;
+
+        const Edge *edge = currentNode.parentEdge;
+        if (edge == nullptr)
+            continue;
+
+        const auto &edgePath = edge->getPath();
+        if (edgePath.size() <= 2)
+            continue;
+
+        if (!currentNode.parentEdgeReversed)
+        {
+            for (size_t pathIndex = edgePath.size() - 2; pathIndex > 0; --pathIndex)
+            {
+                path.emplace_back(0, edgePath.at(pathIndex));
+            }
+        }
+        else
+        {
+            for (size_t pathIndex = 1; pathIndex < edgePath.size() - 1; ++pathIndex)
+            {
+                path.emplace_back(0, edgePath.at(pathIndex));
+            }
+        }
+    }
 
     std::reverse(path.begin(), path.end());
     return path;
