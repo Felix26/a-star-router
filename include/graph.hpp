@@ -16,7 +16,13 @@ class Graph
 
         void printGraph();
 
+        std::vector<uint64_t> aStar(uint64_t startId, uint64_t goalId);
+
+        const std::unordered_map<uint64_t, Node> &getNodes() const { return mNodes; }
+
     private:
         std::unordered_map<uint64_t, Node> mNodes;
         std::unordered_map<uint64_t, Edge> mEdges;
+
+        static double heuristic(const Node &a, const Node &b);
 };

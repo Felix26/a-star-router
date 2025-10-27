@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <cstdint>
+#include <cstdlib>
 
 
 #include <pugixml.hpp>
@@ -18,13 +19,39 @@ std::unordered_map<uint64_t, OsmWay> ways;
 Graph graph;
 
 void readOSMFile(const std::string &filepath);
+void createGraph();
 
 int main()
 {
+    srand(24);
     readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/karlsruhe_stadt.osm");
 
     createGraph();
     //graph.printGraph();
+
+    auto &nodelist = graph.getNodes();
+    auto nodeListSize = nodelist.size();
+
+    std::vector<uint64_t> ids;
+
+    for(auto &[id, _] : nodelist)
+    {
+        ids.push_back(id);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        auto path = graph.aStar(ids.at(rand() % nodeListSize), ids.at(rand() % nodeListSize));
+
+        std::cout << "Route: ";
+        double length = 0.0;
+        for (auto id : path)
+        {
+            auto &node = nodes.at(id);
+            std::cout << id << " (" << node.getCoordinates() << "\n";
+        }
+        std::cout << "Länge: " << path.size() << " Knoten\n";
+    }
 
     std::cout << "Original Way Count: " << ways.size() << "\n";
     std::cout << "Original Node Count: " << nodes.size() << "\n";
@@ -66,7 +93,7 @@ void readOSMFile(const std::string &filepath)
                         }
                         catch (const std::out_of_range &e)
                         {
-                            std::cerr << "Node with ID " << node.attribute("ref").value() << " not found.\n";
+                            //std::cerr << "Node with ID " << node.attribute("ref").value() << " not found.\n";
                             continue;
                         }
                     }

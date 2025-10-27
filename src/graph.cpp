@@ -1,6 +1,11 @@
 #include "graph.hpp"
 
 #include <iostream>
+#include <queue>
+#include <vector>
+#include <limits>
+#include <unordered_map>
+#include <algorithm>
 
 #include "library.hpp"
 #include "edge.hpp"
@@ -71,4 +76,77 @@ void Graph::printGraph()
 
     std::cout << "Edge Count: " << mEdges.size() << "\n";
     std::cout << "Node Count: " << mNodes.size() << "\n";
+}
+
+double Graph::heuristic(const Node &a, const Node &b)
+{
+    return HelperFunctions::haversine(a.getCoordinates(), b.getCoordinates());
+}
+
+std::vector<uint64_t> Graph::aStar(uint64_t startId, uint64_t goalId)
+{
+    // Alle Knoten zurücksetzen (für wiederholte Nutzung)
+    for (auto &[id, node] : mNodes)
+    {
+        node.g = std::numeric_limits<double>::infinity();
+        node.f = std::numeric_limits<double>::infinity();
+        node.visited = false;
+        node.parent = 0;
+    }
+
+    Node &start = mNodes.at(startId);
+    Node &goal = mNodes.at(goalId);
+
+    start.g = 0.0;
+    start.f = Graph::heuristic(start, goal);
+
+    using PQItem = std::pair<double, uint64_t>; // (f, nodeId)
+    std::priority_queue<PQItem, std::vector<PQItem>, std::greater<PQItem>> openSet;
+    openSet.emplace(start.f, start.getId());
+
+    while (!openSet.empty())
+    {
+        auto [currentF, currentId] = openSet.top();
+        openSet.pop();
+
+        Node &current = mNodes.at(currentId);
+
+        if (current.visited)
+            continue;
+        current.visited = true;
+
+        // Ziel erreicht?
+        if (currentId == goalId)
+            break;
+
+        // Alle Nachbarn durchsuchen
+        for (Edge &edge : current.edges)
+        {
+            // Nächster Nachbar bestimmen
+            Node &neighbor = (edge.from().get().getId() == currentId)
+                                 ? edge.to().get()
+                                 : edge.from().get();
+
+            if (neighbor.visited)
+                continue;
+
+            double tentativeG = current.g + edge.calculateWayLength();
+
+            if (tentativeG < neighbor.g)
+            {
+                neighbor.parent = currentId;
+                neighbor.g = tentativeG;
+                neighbor.f = tentativeG + Graph::heuristic(neighbor, goal);
+                openSet.emplace(neighbor.f, neighbor.getId());
+            }
+        }
+    }
+
+    // Pfad rekonstruieren
+    std::vector<uint64_t> path;
+    for (uint64_t nodeId = goalId; nodeId != 0; nodeId = mNodes.at(nodeId).parent)
+        path.push_back(nodeId);
+
+    std::reverse(path.begin(), path.end());
+    return path;
 }
