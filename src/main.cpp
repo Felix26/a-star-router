@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <cstdint>
-#include <cstdlib>
+#include <sstream>
 
 
 #include <pugixml.hpp>
@@ -21,33 +21,68 @@ Graph graph;
 void readOSMFile(const std::string &filepath);
 void createGraph();
 
-int main()
+int main(int argc, char *argv[])
 {
-    srand(240);
-    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/bw_min.osm");
+    if(argc < 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <osm_file.osm>\n";
+        return 1;
+    }
+
+    readOSMFile(argv[1]);
 
     createGraph();
     //graph.printGraph();
 
     auto &nodelist = graph.getNodes();
-    auto nodeListSize = nodelist.size();
 
-    std::vector<uint64_t> ids;
-
-    for(auto &[id, _] : nodelist)
+    size_t pathCounter = 0;
+    std::string line;
+    while (true)
     {
-        ids.push_back(id);
-    }
+        std::cout << "Bitte Start- und Zielknoten-ID eingeben (oder 'exit'): ";
+        if (!std::getline(std::cin, line))
+        {
+            std::cout << "Eingabe beendet.\n";
+            break;
+        }
 
-    for(int i = 0; i < 10; i++)
-    {
-        uint64_t startId = ids.at(rand() % nodeListSize);
-        uint64_t goalId = ids.at(rand() % nodeListSize);
+        if (line.empty())
+            continue;
+
+        if (line == "exit" || line == "quit")
+            break;
+
+        std::istringstream iss(line);
+        uint64_t startId = 0;
+        uint64_t goalId = 0;
+        if (!(iss >> startId >> goalId))
+        {
+            std::cerr << "Ungültige Eingabe. Bitte zwei numerische IDs eingeben.\n";
+            continue;
+        }
+
+        if (nodelist.find(startId) == nodelist.end())
+        {
+            std::cerr << "Startknoten " << startId << " existiert nicht im Graphen.\n";
+            continue;
+        }
+
+        if (nodelist.find(goalId) == nodelist.end())
+        {
+            std::cerr << "Zielknoten " << goalId << " existiert nicht im Graphen.\n";
+            continue;
+        }
 
         auto path = graph.aStar(startId, goalId);
+        if (path.empty())
+        {
+            std::cerr << "Kein Pfad gefunden zwischen " << startId << " und " << goalId << ".\n";
+            continue;
+        }
 
-        std::cout << "Path " << i << " from " << startId << " to " << goalId << "\n";
-        HelperFunctions::exportPathToGeoJSON(path, "astar_path_" + std::to_string(i) + ".geojson");
+        std::cout << "Pfad " << pathCounter << " von " << startId << " nach " << goalId << " mit " << path.size() << " Punkten.\n";
+        HelperFunctions::exportPathToGeoJSON(path, "astar_path_" + std::to_string(pathCounter++) + ".geojson");
     }
 
     return 0;
