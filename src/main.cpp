@@ -24,7 +24,7 @@ void createGraph();
 int main()
 {
     srand(240);
-    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/neureut.osm");
+    readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/bw_min.osm");
 
     createGraph();
     //graph.printGraph();
@@ -49,9 +49,6 @@ int main()
         std::cout << "Path " << i << " from " << startId << " to " << goalId << "\n";
         HelperFunctions::exportPathToGeoJSON(path, "astar_path_" + std::to_string(i) + ".geojson");
     }
-
-    std::cout << "Original Way Count: " << ways.size() << "\n";
-    std::cout << "Original Node Count: " << nodes.size() << "\n";
 
     return 0;
 }
@@ -143,4 +140,7 @@ void createGraph()
     {
         graph.addOsmWay(way.second);
     }
+
+    nodes = std::unordered_map<u_int64_t, OsmNode>(); // free memory
+    ways = std::unordered_map<u_int64_t, OsmWay>(); // free memory
 }
