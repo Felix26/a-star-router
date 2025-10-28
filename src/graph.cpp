@@ -41,8 +41,8 @@ void Graph::addOsmWay(OsmWay &way)
 
             double waylength = HelperFunctions::calculatePathLength(path);
 
-            // First sub-way gets to keep original ID; subsequent IDs use 4 bits for sub-way index, 60 bits for way ID are copied
-            uint64_t wayId = way.getId() | (subWayId++ << 60);
+            // First sub-way gets to keep original ID; subsequent IDs use 8 bits for sub-way index, 56 bits for way ID are copied
+            uint64_t wayId = way.getId() | (subWayId++ << 56);
 
             mEdges.emplace(wayId, Edge(wayId, waylength, fromNode, toNode, path));
             fromNode.edges.push_back(mEdges.at(wayId));

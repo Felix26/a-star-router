@@ -23,7 +23,7 @@ void createGraph();
 
 int main()
 {
-    srand(24);
+    srand(240);
     readOSMFile("/home/felixm/Desktop/Studienarbeit/Router/testdata/neureut.osm");
 
     createGraph();
@@ -39,10 +39,14 @@ int main()
         ids.push_back(id);
     }
 
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 10; i++)
     {
-        auto path = graph.aStar(ids.at(rand() % nodeListSize), ids.at(rand() % nodeListSize));
+        uint64_t startId = ids.at(rand() % nodeListSize);
+        uint64_t goalId = ids.at(rand() % nodeListSize);
 
+        auto path = graph.aStar(startId, goalId);
+
+        std::cout << "Path " << i << " from " << startId << " to " << goalId << "\n";
         HelperFunctions::exportPathToGeoJSON(path, "astar_path_" + std::to_string(i) + ".geojson");
     }
 
