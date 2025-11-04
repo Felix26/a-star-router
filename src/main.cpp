@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <sstream>
 #include <memory>
+#include <random>
+#include <unordered_dense.h>
 
 
 #include <pugixml.hpp>
@@ -14,25 +16,30 @@
 
 #include "graph.hpp"
 
-std::unordered_map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
-std::unordered_map<uint64_t, std::unique_ptr<OsmWay>> ways;
-
-Graph graph;
-
-void readOSMFile(const std::string &filepath);
-void createGraph();
+void readOSMFile(const std::string &filepath, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
+void createGraph(Graph &graph, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 
 int main(int argc, char *argv[])
 {
+    srand(0);
+    
     if(argc < 2)
     {
         std::cerr << "Usage: " << argv[0] << " <osm_file.osm>\n";
         return 1;
     }
+    
+    Graph graph;
 
-    readOSMFile(argv[1]);
+    {
+        ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
+        ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
-    createGraph();
+        readOSMFile(argv[1], nodes, ways);
+
+        createGraph(graph, nodes, ways);
+    }
+
     //graph.printGraph();
 
     auto &nodelist = graph.getNodes();
@@ -41,38 +48,52 @@ int main(int argc, char *argv[])
     std::string line;
     while (true)
     {
-        std::cout << "Bitte Start- und Zielknoten-ID eingeben (oder 'exit'): ";
+        std::cout << "Bitte Start- und Zielknoten-ID eingeben, leer für zufällige IDs (oder 'exit'): ";
         if (!std::getline(std::cin, line))
         {
             std::cout << "Eingabe beendet.\n";
             break;
         }
 
-        if (line.empty())
-            continue;
-
-        if (line == "exit" || line == "quit")
-            break;
-
         std::istringstream iss(line);
         uint64_t startId = 0;
         uint64_t goalId = 0;
-        if (!(iss >> startId >> goalId))
-        {
-            std::cerr << "Ungültige Eingabe. Bitte zwei numerische IDs eingeben.\n";
-            continue;
-        }
 
-        if (nodelist.find(startId) == nodelist.end())
+        if (line.empty())
         {
-            std::cerr << "Startknoten " << startId << " existiert nicht im Graphen.\n";
-            continue;
-        }
+            // choose random start and goal IDs
+            auto it = nodelist.begin();
+            std::advance(it, rand() % nodelist.size());
+            startId = it->first;
 
-        if (nodelist.find(goalId) == nodelist.end())
+            it = nodelist.begin();
+            std::advance(it, rand() % nodelist.size());
+            goalId = it->first;
+
+            std::cout << "Zufällige Start-ID: " << startId << ", Ziel-ID: " << goalId << "\n";
+        }
+        else
         {
-            std::cerr << "Zielknoten " << goalId << " existiert nicht im Graphen.\n";
-            continue;
+            if (line == "exit" || line == "quit")
+                break;
+
+            if (!(iss >> startId >> goalId))
+            {
+                std::cerr << "Ungültige Eingabe. Bitte zwei numerische IDs eingeben.\n";
+                continue;
+            }
+
+            if (nodelist.find(startId) == nodelist.end())
+            {
+                std::cerr << "Startknoten " << startId << " existiert nicht im Graphen.\n";
+                continue;
+            }
+
+            if (nodelist.find(goalId) == nodelist.end())
+            {
+                std::cerr << "Zielknoten " << goalId << " existiert nicht im Graphen.\n";
+                continue;
+            }
         }
 
         auto path = graph.aStar(startId, goalId);
@@ -89,7 +110,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void readOSMFile(const std::string &filepath)
+void readOSMFile(const std::string &filepath, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
 {
     pugi::xml_document doc;
     if (doc.load_file(filepath.c_str()))
@@ -165,7 +186,7 @@ void readOSMFile(const std::string &filepath)
     }
 }
 
-void createGraph()
+void createGraph(Graph &graph, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
 {
     for(auto &node : nodes)
     {
@@ -176,7 +197,4 @@ void createGraph()
     {
         graph.addOsmWay(way.second.get());
     }
-
-    nodes = std::unordered_map<u_int64_t, std::shared_ptr<OsmNode>>(); // free memory
-    ways = std::unordered_map<u_int64_t, std::unique_ptr<OsmWay>>(); // free memory
 }

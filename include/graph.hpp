@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <unordered_map>
+#include <unordered_dense.h>
 #include <memory>
 
 #include <osmnode.hpp>
@@ -19,11 +19,11 @@ class Graph
 
         std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId);
 
-        const std::unordered_map<uint64_t, Node> &getNodes() const { return mNodes; }
+        const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> &getNodes() const { return mNodes; }
 
     private:
-        std::unordered_map<uint64_t, Node> mNodes;
-        std::unordered_map<uint64_t, Edge> mEdges;
+        ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> mNodes;
+        ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> mEdges;
 
         static double heuristic(const Node &a, const Node &b);
 };

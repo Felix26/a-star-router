@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <limits>
+#include <memory>
 
 class Edge;
 
@@ -13,7 +14,7 @@ class Node : public OsmNode
     public:
         Node(OsmNode &other) : OsmNode(other) {}
 
-        std::vector<std::reference_wrapper<Edge>> edges;
+        std::vector<std::shared_ptr<Edge>> edges;
 
         double g = std::numeric_limits<double>::infinity();  // known cost from start
         double f = std::numeric_limits<double>::infinity();  // estimated total cost

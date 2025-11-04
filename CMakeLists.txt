@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
 # pugixml einbinden
 add_subdirectory(external/pugixml-1.15)
 
@@ -30,6 +31,7 @@ target_include_directories(router_core
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
 )
 target_compile_features(router_core PUBLIC cxx_std_17)
 

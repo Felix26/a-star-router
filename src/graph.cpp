@@ -15,7 +15,7 @@ void Graph::addOsmNode(std::shared_ptr<OsmNode> node)
 {
     if(node->isEdge)
     {
-        mNodes.emplace(node->getId(), Node(*node));
+        mNodes.emplace(node->getId(), std::make_shared<Node>(*node));
     }
 }
 
@@ -31,8 +31,8 @@ void Graph::addOsmWay(const OsmWay *way)
         if(way->getNodes()[index]->isEdge)
         {
             // create edge between startIndex and index
-            Node &fromNode = mNodes.at(way->getNodes().at(startIndex)->getId());
-            Node &toNode = mNodes.at(way->getNodes().at(index)->getId());
+            std::shared_ptr<Node> fromNode = mNodes.at(way->getNodes().at(startIndex)->getId());
+            std::shared_ptr<Node> toNode = mNodes.at(way->getNodes().at(index)->getId());
 
             std::vector<Coordinates> path;
             for(size_t pathIndex = startIndex; pathIndex <= index; pathIndex++)
@@ -45,9 +45,9 @@ void Graph::addOsmWay(const OsmWay *way)
             // First sub-way gets to keep original ID; subsequent IDs use 8 bits for sub-way index, 56 bits for way ID are copied
             uint64_t wayId = way->getId() | (subWayId++ << 56);
 
-            mEdges.emplace(wayId, Edge(wayId, waylength, fromNode, toNode, path));
-            fromNode.edges.push_back(mEdges.at(wayId));
-            toNode.edges.push_back(mEdges.at(wayId));
+            mEdges.emplace(wayId, std::make_shared<Edge>(wayId, waylength, fromNode, toNode, path));
+            fromNode->edges.push_back(mEdges.at(wayId));
+            toNode->edges.push_back(mEdges.at(wayId));
 
             startIndex = index;
         }
@@ -60,17 +60,17 @@ void Graph::printGraph()
 
     for(const auto &edge : mEdges)
     {
-        std::cout << "Edge ID: " << edge.first << ", Length: " << edge.second.calculateWayLength() << " mm\n";
+        std::cout << "Edge ID: " << edge.first << ", Length: " << edge.second->calculateWayLength() << " mm\n";
     }
 
     std::cout << "\n\n\nNODES:\n";
     
     for(const auto &node : mNodes)
     {
-        std::cout << "Node ID: " << node.first << ", Coordinates: " << node.second.getCoordinates() << ", Connected Edges: ";
-        for(const auto &edge : node.second.edges)
+        std::cout << "Node ID: " << node.first << ", Coordinates: " << node.second->getCoordinates() << ", Connected Edges: ";
+        for(const auto &edge : node.second->edges)
         {
-            std::cout << edge.get().getId() << " ";
+            std::cout << edge->getId() << " ";
         }
         std::cout << "\n";
     }
@@ -89,74 +89,74 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, ui
     // Alle Knoten zurücksetzen (für wiederholte Nutzung)
     for (auto &[id, node] : mNodes)
     {
-        node.g = std::numeric_limits<double>::infinity();
-        node.f = std::numeric_limits<double>::infinity();
-        node.visited = false;
-        node.parent = 0;
-        node.parentEdge = nullptr;
-        node.parentEdgeReversed = false;
+        node->g = std::numeric_limits<double>::infinity();
+        node->f = std::numeric_limits<double>::infinity();
+        node->visited = false;
+        node->parent = 0;
+        node->parentEdge = nullptr;
+        node->parentEdgeReversed = false;
     }
 
-    Node &start = mNodes.at(startId);
-    Node &goal = mNodes.at(goalId);
+    std::shared_ptr<Node> start = mNodes.at(startId);
+    std::shared_ptr<Node> goal = mNodes.at(goalId);
 
-    start.g = 0.0;
-    start.f = Graph::heuristic(start, goal);
+    start->g = 0.0;
+    start->f = Graph::heuristic(*start, *goal);
 
     using PQItem = std::pair<double, uint64_t>; // (f, nodeId)
     std::priority_queue<PQItem, std::vector<PQItem>, std::greater<PQItem>> openSet;
-    openSet.emplace(start.f, start.getId());
+    openSet.emplace(start->f, start->getId());
 
     while (!openSet.empty())
     {
         auto [currentF, currentId] = openSet.top();
         openSet.pop();
 
-        Node &current = mNodes.at(currentId);
+        std::shared_ptr<Node> current = mNodes.at(currentId);
 
-        if (current.visited)
+        if (current->visited)
             continue;
-        current.visited = true;
+        current->visited = true;
 
         // Ziel erreicht?
         if (currentId == goalId)
             break;
 
         // Alle Nachbarn durchsuchen
-        for (Edge &edge : current.edges)
+        for (const auto &edge : current->edges)
         {
             // Nächster Nachbar bestimmen
-            Node &neighbor = (edge.from().get().getId() == currentId)
-                                 ? edge.to().get()
-                                 : edge.from().get();
+            std::shared_ptr<Node> neighbor = (edge->from()->getId() == currentId)
+                                 ? edge->to()
+                                 : edge->from();
 
-            if (neighbor.visited)
+            if (neighbor->visited)
                 continue;
 
-            double tentativeG = current.g + edge.calculateWayLength();
+            double tentativeG = current->g + edge->calculateWayLength();
 
-            if (tentativeG < neighbor.g)
+            if (tentativeG < neighbor->g)
             {
-                neighbor.parent = currentId;
-                neighbor.parentEdge = &edge;
-                neighbor.parentEdgeReversed = (edge.to().get().getId() == currentId);
-                neighbor.g = tentativeG;
-                neighbor.f = tentativeG + Graph::heuristic(neighbor, goal);
-                openSet.emplace(neighbor.f, neighbor.getId());
+                neighbor->parent = currentId;
+                neighbor->parentEdge = edge.get();
+                neighbor->parentEdgeReversed = (edge->to()->getId() == currentId);
+                neighbor->g = tentativeG;
+                neighbor->f = tentativeG + Graph::heuristic(*neighbor, *goal);
+                openSet.emplace(neighbor->f, neighbor->getId());
             }
         }
     }
 
     // Pfad rekonstruieren
     std::vector<std::tuple<uint64_t, Coordinates>> path;
-    for (uint64_t nodeId = goalId;; nodeId = mNodes.at(nodeId).parent)
+    for (uint64_t nodeId = goalId;; nodeId = mNodes.at(nodeId)->parent)
     {
         if (nodeId == 0)
         {
             std::cerr << "No path found from " << startId << " to " << goalId << "\n";
             return std::vector<std::tuple<uint64_t, Coordinates>>(); // Kein Pfad gefunden
         }
-        const Node &currentNode = mNodes.at(nodeId);
+        const Node &currentNode = *mNodes.at(nodeId);
         path.emplace_back(nodeId, currentNode.getCoordinates());
 
         if (nodeId == startId)
