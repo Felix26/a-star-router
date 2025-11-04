@@ -15,7 +15,7 @@
 #include "graph.hpp"
 
 std::unordered_map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
-std::unordered_map<uint64_t, std::shared_ptr<OsmWay>> ways;
+std::unordered_map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
 Graph graph;
 
@@ -110,7 +110,7 @@ void readOSMFile(const std::string &filepath)
                 if (std::string(tag.attribute("k").value()) == "highway")
                 {
                     uint64_t id = std::stoull(way.node().attribute("id").value());
-                    ways.emplace(id, std::make_shared<OsmWay>(id));
+                    ways.emplace(id, std::make_unique<OsmWay>(id));
                     //std::cout << "Way id: " << way.node().attribute("id").value() << "\n";
                     
                     for (const auto &node : way.node().children("nd"))
@@ -174,9 +174,9 @@ void createGraph()
 
     for(auto &way : ways)
     {
-        graph.addOsmWay(way.second);
+        graph.addOsmWay(way.second.get());
     }
 
     nodes = std::unordered_map<u_int64_t, std::shared_ptr<OsmNode>>(); // free memory
-    ways = std::unordered_map<u_int64_t, std::shared_ptr<OsmWay>>(); // free memory
+    ways = std::unordered_map<u_int64_t, std::unique_ptr<OsmWay>>(); // free memory
 }

@@ -19,7 +19,7 @@ void Graph::addOsmNode(std::shared_ptr<OsmNode> node)
     }
 }
 
-void Graph::addOsmWay(std::shared_ptr<OsmWay> way)
+void Graph::addOsmWay(const OsmWay *way)
 {
     size_t startIndex = 0;
     size_t subWayId = 0;

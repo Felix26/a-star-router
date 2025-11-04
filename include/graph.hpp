@@ -13,7 +13,7 @@ class Graph
 {
     public:
         void addOsmNode(std::shared_ptr<OsmNode> node);
-        void addOsmWay(std::shared_ptr<OsmWay> way);
+        void addOsmWay(const OsmWay *way);
 
         void printGraph();
 
