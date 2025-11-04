@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <sstream>
+#include <memory>
 
 
 #include <pugixml.hpp>
@@ -13,8 +14,8 @@
 
 #include "graph.hpp"
 
-std::unordered_map<u_int64_t, OsmNode> nodes;
-std::unordered_map<uint64_t, OsmWay> ways;
+std::unordered_map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
+std::unordered_map<uint64_t, std::shared_ptr<OsmWay>> ways;
 
 Graph graph;
 
@@ -98,7 +99,7 @@ void readOSMFile(const std::string &filepath)
             u_int64_t id = std::stoull(node.node().attribute("id").value());
             double lat = std::stod(node.node().attribute("lat").value());
             double lon = std::stod(node.node().attribute("lon").value());
-            nodes.emplace(id, OsmNode(id, lat, lon));
+            nodes.emplace(id, std::make_shared<OsmNode>(id, lat, lon));
         }
 
         for(const auto &way : doc.select_nodes("/osm/way"))
@@ -109,16 +110,16 @@ void readOSMFile(const std::string &filepath)
                 if (std::string(tag.attribute("k").value()) == "highway")
                 {
                     uint64_t id = std::stoull(way.node().attribute("id").value());
-                    ways.emplace(id, OsmWay(id));
+                    ways.emplace(id, std::make_shared<OsmWay>(id));
                     //std::cout << "Way id: " << way.node().attribute("id").value() << "\n";
                     
                     for (const auto &node : way.node().children("nd"))
                     {
                         try
                         {
-                            auto &nodeFromList = nodes.at(std::stoull(node.attribute("ref").value()));
-                            nodeFromList.isVisited = true;
-                            ways.at(id).addNode(nodeFromList);
+                            auto nodeFromList = nodes.at(std::stoull(node.attribute("ref").value()));
+                            nodeFromList->isVisited = true;
+                            ways.at(id)->addNode(nodeFromList);
                         }
                         catch (const std::out_of_range &e)
                         {
@@ -127,14 +128,14 @@ void readOSMFile(const std::string &filepath)
                         }
                     }
 
-                    if(ways.at(id).getNodes().size() < 2)
+                    if(ways.at(id)->getNodes().size() < 2)
                     {
                         //std::cout << "  Skipping way with less than 2 nodes.\n";
                         break;
                     }
 
-                    ways.at(id).getNodes().front().get().isEdge = true;
-                    ways.at(id).getNodes().back().get().isEdge = true;
+                    ways.at(id)->getNodes().front()->isEdge = true;
+                    ways.at(id)->getNodes().back()->isEdge = true;
 
                     //std::cout << "  Path Length: " << ways.at(id).calculateWayLength() << " m\n";
 
@@ -147,7 +148,7 @@ void readOSMFile(const std::string &filepath)
         // Clean up empty nodes
         for(auto it = nodes.begin(); it != nodes.end(); /* */)
         {
-            if(it->second.isVisited == false) 
+            if(it->second->isVisited == false) 
             {
                 it = nodes.erase(it);
             }
@@ -176,6 +177,6 @@ void createGraph()
         graph.addOsmWay(way.second);
     }
 
-    nodes = std::unordered_map<u_int64_t, OsmNode>(); // free memory
-    ways = std::unordered_map<u_int64_t, OsmWay>(); // free memory
+    nodes = std::unordered_map<u_int64_t, std::shared_ptr<OsmNode>>(); // free memory
+    ways = std::unordered_map<u_int64_t, std::shared_ptr<OsmWay>>(); // free memory
 }

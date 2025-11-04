@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
 #include <osmnode.hpp>
 #include <osmway.hpp>
@@ -11,8 +12,8 @@
 class Graph
 {
     public:
-        void addOsmNode(OsmNode &node);
-        void addOsmWay(OsmWay &way);
+        void addOsmNode(std::shared_ptr<OsmNode> node);
+        void addOsmWay(std::shared_ptr<OsmWay> way);
 
         void printGraph();
 

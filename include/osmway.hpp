@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <functional>
+#include <memory>
 
 #include "osmnode.hpp"
 
@@ -10,13 +11,13 @@ class OsmWay
     public:
         OsmWay(uint64_t id) : mId(id) {}
 
-        void addNode(OsmNode &node);
+        void addNode(std::shared_ptr<OsmNode> node);
 
-        const std::vector<std::reference_wrapper<OsmNode>> &getNodes() { return mNodes; }
+        const std::vector<std::shared_ptr<OsmNode>> &getNodes() const { return mNodes; }
 
         const uint64_t getId() const {return mId;}
 
     private:
         uint64_t mId;
-        std::vector<std::reference_wrapper<OsmNode>> mNodes;
+        std::vector<std::shared_ptr<OsmNode>> mNodes;
 };

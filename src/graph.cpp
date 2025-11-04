@@ -6,43 +6,44 @@
 #include <limits>
 #include <unordered_map>
 #include <algorithm>
+#include <memory>
 
 #include "library.hpp"
 #include "edge.hpp"
 
-void Graph::addOsmNode(OsmNode &node)
+void Graph::addOsmNode(std::shared_ptr<OsmNode> node)
 {
-    if(node.isEdge)
+    if(node->isEdge)
     {
-        mNodes.emplace(node.getId(), Node(node));
+        mNodes.emplace(node->getId(), Node(*node));
     }
 }
 
-void Graph::addOsmWay(OsmWay &way)
+void Graph::addOsmWay(std::shared_ptr<OsmWay> way)
 {
     size_t startIndex = 0;
     size_t subWayId = 0;
 
     // check all nodes in way if there are junctions; ignore first and last node
-    for(size_t index = 1; index < way.getNodes().size(); index++)
+    for(size_t index = 1; index < way->getNodes().size(); index++)
     {
         // find nodes that are in the graph
-        if(way.getNodes().at(index).get().isEdge)
+        if(way->getNodes()[index]->isEdge)
         {
             // create edge between startIndex and index
-            Node &fromNode = mNodes.at(way.getNodes().at(startIndex).get().getId());
-            Node &toNode = mNodes.at(way.getNodes().at(index).get().getId());
+            Node &fromNode = mNodes.at(way->getNodes().at(startIndex)->getId());
+            Node &toNode = mNodes.at(way->getNodes().at(index)->getId());
 
             std::vector<Coordinates> path;
             for(size_t pathIndex = startIndex; pathIndex <= index; pathIndex++)
             {
-                path.push_back(way.getNodes().at(pathIndex).get().getCoordinates());
+                path.push_back(way->getNodes()[pathIndex]->getCoordinates());
             }
 
             double waylength = HelperFunctions::calculatePathLength(path);
 
             // First sub-way gets to keep original ID; subsequent IDs use 8 bits for sub-way index, 56 bits for way ID are copied
-            uint64_t wayId = way.getId() | (subWayId++ << 56);
+            uint64_t wayId = way->getId() | (subWayId++ << 56);
 
             mEdges.emplace(wayId, Edge(wayId, waylength, fromNode, toNode, path));
             fromNode.edges.push_back(mEdges.at(wayId));
