@@ -3,10 +3,17 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <string>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <stdexcept>
+#include <string>
+
+#include <pugixml.hpp>
+
+#include "graph.hpp"
+#include "osmnode.hpp"
+#include "osmway.hpp"
 
 namespace HelperFunctions
 {
@@ -117,5 +124,92 @@ namespace HelperFunctions
         file << "}\n";
 
         file.close();
+    }
+
+    void readOSMFile(const std::string &filepath,
+                     ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
+                     ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+    {
+        pugi::xml_document doc;
+        if (doc.load_file(filepath.c_str()))
+        {
+            for (const auto &node : doc.select_nodes("/osm/node"))
+            {
+                u_int64_t id = std::stoull(node.node().attribute("id").value());
+                double lat = std::stod(node.node().attribute("lat").value());
+                double lon = std::stod(node.node().attribute("lon").value());
+                nodes.emplace(id, std::make_shared<OsmNode>(id, lat, lon));
+            }
+
+            for (const auto &way : doc.select_nodes("/osm/way"))
+            {
+                for (const auto &tag : way.node().children("tag"))
+                {
+                    if (std::string(tag.attribute("k").value()) == "highway")
+                    {
+                        uint64_t id = std::stoull(way.node().attribute("id").value());
+                        ways.emplace(id, std::make_unique<OsmWay>(id));
+
+                        for (const auto &nodeRef : way.node().children("nd"))
+                        {
+                            try
+                            {
+                                auto nodeFromList = nodes.at(std::stoull(nodeRef.attribute("ref").value()));
+                                nodeFromList->isVisited = true;
+                                ways.at(id)->addNode(nodeFromList);
+                            }
+                            catch (const std::out_of_range &)
+                            {
+                                std::cerr << "Node with ID " << nodeRef.attribute("ref").value() << " not found.\n";
+                                continue;
+                            }
+                        }
+
+                        if (ways.at(id)->getNodes().size() < 2)
+                        {
+                            break;
+                        }
+
+                        ways.at(id)->getNodes().front()->isEdge = true;
+                        ways.at(id)->getNodes().back()->isEdge = true;
+
+                        break;
+                    }
+                }
+            }
+
+            for (auto it = nodes.begin(); it != nodes.end();)
+            {
+                if (!it->second->isVisited)
+                {
+                    it = nodes.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Error reading OSM file: " + filepath);
+        }
+
+        doc.reset();
+    }
+
+    void createGraph(Graph &graph,
+                     ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
+                     ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+    {
+        for (auto &node : nodes)
+        {
+            graph.addOsmNode(node.second);
+        }
+
+        for (auto &way : ways)
+        {
+            graph.addOsmWay(way.second.get());
+        }
     }
 } // namespace HelperFunctions
