@@ -151,6 +151,7 @@ void RouterServer::handleClient(int clientFd)
         }
 
         const std::string fileName = "astar_path_" + std::to_string(pathCounter_++) + ".geojson";
+        pathCounter_ %= 10;
         HelperFunctions::exportPathToGeoJSON(path, fileName);
 
         std::ostringstream response;
