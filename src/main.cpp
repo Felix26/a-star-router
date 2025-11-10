@@ -1,34 +1,50 @@
+#include <cstdint>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
+#include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
-#include <sstream>
-#include <memory>
-#include <random>
 #include <unordered_dense.h>
-
 
 #include <pugixml.hpp>
 
 #include "library.hpp"
 #include "osmnode.hpp"
 #include "osmway.hpp"
-
 #include "graph.hpp"
+#include "socket.hpp"
 
 void readOSMFile(const std::string &filepath, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 void createGraph(Graph &graph, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 
+namespace
+{
+constexpr uint16_t kDefaultPort = 5555;
+}
 int main(int argc, char *argv[])
 {
     srand(0);
     
     if(argc < 2)
     {
-        std::cerr << "Usage: " << argv[0] << " <osm_file.osm>\n";
+        std::cerr << "Usage: " << argv[0] << " <osm_file.osm> [port]\n";
         return 1;
     }
     
+    uint16_t port = kDefaultPort;
+    if (argc >= 3)
+    {
+        int parsedPort = std::stoi(argv[2]);
+        if (parsedPort <= 0 || parsedPort > 65535)
+        {
+            std::cerr << "Ungueltiger Port: " << argv[2] << "\n";
+            return 1;
+        }
+        port = static_cast<uint16_t>(parsedPort);
+    }
+
     Graph graph;
 
     {
@@ -40,71 +56,15 @@ int main(int argc, char *argv[])
         createGraph(graph, nodes, ways);
     }
 
-    //graph.printGraph();
-
-    auto &nodelist = graph.getNodes();
-
-    size_t pathCounter = 0;
-    std::string line;
-    while (true)
+    try
     {
-        std::cout << "Bitte Start- und Zielknoten-ID eingeben, leer für zufällige IDs (oder 'exit'): ";
-        if (!std::getline(std::cin, line))
-        {
-            std::cout << "Eingabe beendet.\n";
-            break;
-        }
-
-        std::istringstream iss(line);
-        uint64_t startId = 0;
-        uint64_t goalId = 0;
-
-        if (line.empty())
-        {
-            // choose random start and goal IDs
-            auto it = nodelist.begin();
-            std::advance(it, rand() % nodelist.size());
-            startId = it->first;
-
-            it = nodelist.begin();
-            std::advance(it, rand() % nodelist.size());
-            goalId = it->first;
-
-            std::cout << "Zufällige Start-ID: " << startId << ", Ziel-ID: " << goalId << "\n";
-        }
-        else
-        {
-            if (line == "exit" || line == "quit")
-                break;
-
-            if (!(iss >> startId >> goalId))
-            {
-                std::cerr << "Ungültige Eingabe. Bitte zwei numerische IDs eingeben.\n";
-                continue;
-            }
-
-            if (nodelist.find(startId) == nodelist.end())
-            {
-                std::cerr << "Startknoten " << startId << " existiert nicht im Graphen.\n";
-                continue;
-            }
-
-            if (nodelist.find(goalId) == nodelist.end())
-            {
-                std::cerr << "Zielknoten " << goalId << " existiert nicht im Graphen.\n";
-                continue;
-            }
-        }
-
-        auto path = graph.aStar(startId, goalId);
-        if (path.empty())
-        {
-            std::cerr << "Kein Pfad gefunden zwischen " << startId << " und " << goalId << ".\n";
-            continue;
-        }
-
-        std::cout << "Pfad " << pathCounter << " von " << startId << " nach " << goalId << " mit " << path.size() << " Punkten.\n";
-        HelperFunctions::exportPathToGeoJSON(path, "astar_path_" + std::to_string(pathCounter++) + ".geojson");
+        socketcpp::RouterServer server(graph, port);
+        server.run();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Serverfehler: " << e.what() << "\n";
+        return 1;
     }
 
     return 0;

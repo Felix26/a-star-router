@@ -26,6 +26,7 @@ add_library(router_core STATIC
   src/graph.cpp
   src/node.cpp
   src/edge.cpp
+  src/socket.cpp
 )
 target_include_directories(router_core
   PUBLIC
