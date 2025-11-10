@@ -125,10 +125,14 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, ui
         // Alle Nachbarn durchsuchen
         for (const auto &edge : current->edges)
         {
+            auto fromNode = edge->from();
+            auto toNode = edge->to();
+
+            if (!fromNode || !toNode)
+                continue;
+
             // Nächster Nachbar bestimmen
-            std::shared_ptr<Node> neighbor = (edge->from()->getId() == currentId)
-                                 ? edge->to()
-                                 : edge->from();
+            std::shared_ptr<Node> neighbor = (fromNode->getId() == currentId) ? toNode : fromNode;
 
             if (neighbor->visited)
                 continue;
@@ -139,7 +143,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, ui
             {
                 neighbor->parent = currentId;
                 neighbor->parentEdge = edge.get();
-                neighbor->parentEdgeReversed = (edge->to()->getId() == currentId);
+                neighbor->parentEdgeReversed = (toNode->getId() == currentId);
                 neighbor->g = tentativeG;
                 neighbor->f = tentativeG + Graph::heuristic(*neighbor, *goal);
                 openSet.emplace(neighbor->f, neighbor->getId());
