@@ -8,8 +8,9 @@
 #include <iomanip>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
-#include <pugixml.hpp>
+#include <libxml/xmlreader.h>
 
 #include "graph.hpp"
 #include "osmnode.hpp"
@@ -20,6 +21,162 @@ namespace HelperFunctions
     namespace
     {
         constexpr double DEG_TO_RAD = 3.14159265358979323846 / 180.0;
+
+        struct XmlParserGuard
+        {
+            XmlParserGuard() { xmlInitParser(); }
+            ~XmlParserGuard() { xmlCleanupParser(); }
+        };
+
+        struct XmlReaderGuard
+        {
+            explicit XmlReaderGuard(xmlTextReaderPtr readerPtr) : reader(readerPtr) {}
+            ~XmlReaderGuard()
+            {
+                if (reader)
+                {
+                    xmlFreeTextReader(reader);
+                }
+            }
+
+            xmlTextReaderPtr reader;
+        };
+
+        std::string getAttributeValue(xmlTextReaderPtr reader, const char *attributeName)
+        {
+            xmlChar *rawValue = xmlTextReaderGetAttribute(reader, BAD_CAST attributeName);
+            if (!rawValue)
+            {
+                return {};
+            }
+
+            std::string value(reinterpret_cast<const char *>(rawValue));
+            xmlFree(rawValue);
+            return value;
+        }
+
+        void processNodeElement(xmlTextReaderPtr reader,
+                                ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes)
+        {
+            const std::string idStr = getAttributeValue(reader, "id");
+            const std::string latStr = getAttributeValue(reader, "lat");
+            const std::string lonStr = getAttributeValue(reader, "lon");
+
+            if (idStr.empty() || latStr.empty() || lonStr.empty())
+            {
+                return;
+            }
+
+            try
+            {
+                const u_int64_t id = std::stoull(idStr);
+                const double lat = std::stod(latStr);
+                const double lon = std::stod(lonStr);
+                nodes.try_emplace(id, std::make_shared<OsmNode>(id, lat, lon));
+            }
+            catch (const std::exception &)
+            {
+                // Ungültige Werte werden ignoriert.
+            }
+        }
+
+        void processWayElement(xmlTextReaderPtr reader,
+                               ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
+                               ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+        {
+            const std::string idStr = getAttributeValue(reader, "id");
+            if (idStr.empty())
+            {
+                return;
+            }
+
+            uint64_t wayId = 0;
+            try
+            {
+                wayId = std::stoull(idStr);
+            }
+            catch (const std::exception &)
+            {
+                return;
+            }
+
+            bool isHighway = false;
+            std::vector<uint64_t> nodeRefs;
+
+            if (!xmlTextReaderIsEmptyElement(reader))
+            {
+                const int baseDepth = xmlTextReaderDepth(reader);
+                while (xmlTextReaderRead(reader) == 1)
+                {
+                    const int nodeType = xmlTextReaderNodeType(reader);
+                    if (nodeType == XML_READER_TYPE_ELEMENT)
+                    {
+                        const xmlChar *childName = xmlTextReaderConstName(reader);
+                        if (!childName)
+                        {
+                            continue;
+                        }
+
+                        if (xmlStrcmp(childName, BAD_CAST "tag") == 0)
+                        {
+                            if (getAttributeValue(reader, "k") == "highway")
+                            {
+                                isHighway = true;
+                            }
+                        }
+                        else if (xmlStrcmp(childName, BAD_CAST "nd") == 0)
+                        {
+                            const std::string refStr = getAttributeValue(reader, "ref");
+                            if (!refStr.empty())
+                            {
+                                try
+                                {
+                                    nodeRefs.push_back(std::stoull(refStr));
+                                }
+                                catch (const std::exception &)
+                                {
+                                    // Ignorieren, falls ref ungültig ist.
+                                }
+                            }
+                        }
+                    }
+                    else if (nodeType == XML_READER_TYPE_END_ELEMENT && xmlTextReaderDepth(reader) == baseDepth)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (!isHighway)
+            {
+                return;
+            }
+
+            auto way = std::make_unique<OsmWay>(wayId);
+
+            for (uint64_t nodeId : nodeRefs)
+            {
+                auto nodeIt = nodes.find(nodeId);
+                if (nodeIt == nodes.end())
+                {
+                    std::cerr << "Node with ID " << nodeId << " not found.\n";
+                    continue;
+                }
+
+                nodeIt->second->isVisited = true;
+                way->addNode(nodeIt->second);
+            }
+
+            if (way->getNodes().size() < 2)
+            {
+                return;
+            }
+
+            way->getNodes().front()->isEdge = true;
+            way->getNodes().back()->isEdge = true;
+
+            ways[wayId] = std::move(way);
+        }
     }
 
     // Haversine formula to calculate the great-circle distance between two points in meters
@@ -130,72 +287,56 @@ namespace HelperFunctions
                      ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
     {
-        pugi::xml_document doc;
-        if (doc.load_file(filepath.c_str()))
-        {
-            for (const auto &node : doc.select_nodes("/osm/node"))
-            {
-                u_int64_t id = std::stoull(node.node().attribute("id").value());
-                double lat = std::stod(node.node().attribute("lat").value());
-                double lon = std::stod(node.node().attribute("lon").value());
-                nodes.emplace(id, std::make_shared<OsmNode>(id, lat, lon));
-            }
-
-            for (const auto &way : doc.select_nodes("/osm/way"))
-            {
-                for (const auto &tag : way.node().children("tag"))
-                {
-                    if (std::string(tag.attribute("k").value()) == "highway")
-                    {
-                        uint64_t id = std::stoull(way.node().attribute("id").value());
-                        ways.emplace(id, std::make_unique<OsmWay>(id));
-
-                        for (const auto &nodeRef : way.node().children("nd"))
-                        {
-                            try
-                            {
-                                auto nodeFromList = nodes.at(std::stoull(nodeRef.attribute("ref").value()));
-                                nodeFromList->isVisited = true;
-                                ways.at(id)->addNode(nodeFromList);
-                            }
-                            catch (const std::out_of_range &)
-                            {
-                                std::cerr << "Node with ID " << nodeRef.attribute("ref").value() << " not found.\n";
-                                continue;
-                            }
-                        }
-
-                        if (ways.at(id)->getNodes().size() < 2)
-                        {
-                            break;
-                        }
-
-                        ways.at(id)->getNodes().front()->isEdge = true;
-                        ways.at(id)->getNodes().back()->isEdge = true;
-
-                        break;
-                    }
-                }
-            }
-
-            for (auto it = nodes.begin(); it != nodes.end();)
-            {
-                if (!it->second->isVisited)
-                {
-                    it = nodes.erase(it);
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-        }
-        else
+        XmlParserGuard parserGuard;
+        xmlTextReaderPtr readerPtr = xmlReaderForFile(filepath.c_str(), nullptr,
+                                                      XML_PARSE_NOBLANKS | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+        if (!readerPtr)
         {
             throw std::runtime_error("Error reading OSM file: " + filepath);
         }
 
-        doc.reset();
+        XmlReaderGuard reader(readerPtr);
+
+        int ret = 0;
+        while ((ret = xmlTextReaderRead(reader.reader)) == 1)
+        {
+            if (xmlTextReaderNodeType(reader.reader) != XML_READER_TYPE_ELEMENT)
+            {
+                continue;
+            }
+
+            const xmlChar *nodeName = xmlTextReaderConstName(reader.reader);
+            if (!nodeName)
+            {
+                continue;
+            }
+
+            if (xmlStrcmp(nodeName, BAD_CAST "node") == 0)
+            {
+                processNodeElement(reader.reader, nodes);
+            }
+            else if (xmlStrcmp(nodeName, BAD_CAST "way") == 0)
+            {
+                processWayElement(reader.reader, nodes, ways);
+            }
+        }
+
+        if (ret < 0)
+        {
+            throw std::runtime_error("XML parsing error in file: " + filepath);
+        }
+
+        for (auto it = nodes.begin(); it != nodes.end();)
+        {
+            if (!it->second->isVisited)
+            {
+                it = nodes.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
     }
 
     void createGraph(Graph &graph,

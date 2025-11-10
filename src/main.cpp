@@ -8,8 +8,6 @@
 #include <unordered_map>
 #include <unordered_dense.h>
 
-#include <pugixml.hpp>
-
 #include "library.hpp"
 #include "osmnode.hpp"
 #include "osmway.hpp"
@@ -44,12 +42,18 @@ int main(int argc, char *argv[])
 
     Graph graph;
 
+    try
     {
         ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
         ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
         HelperFunctions::readOSMFile(argv[1], nodes, ways);
         HelperFunctions::createGraph(graph, nodes, ways);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Fehler beim Laden der OSM-Datei: " << e.what() << "\n";
+        return 1;
     }
 
     try

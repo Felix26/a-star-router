@@ -11,8 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
-# pugixml einbinden
-add_subdirectory(external/pugixml-1.15)
+find_package(LibXml2 REQUIRED)
 
 option(ROUTER_BUILD_TESTS "Tests mit CTest/GTest bauen" ON)
 
@@ -33,9 +32,13 @@ target_include_directories(router_core
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/pugixml-1.15/src
 )
 target_compile_features(router_core PUBLIC cxx_std_17)
+
+target_link_libraries(router_core
+  PUBLIC
+    LibXml2::LibXml2
+)
 
 add_executable(router_app
   src/main.cpp
@@ -43,7 +46,6 @@ add_executable(router_app
 target_link_libraries(router_app
   PRIVATE
     router_core
-    pugixml
 )
 
 if(ROUTER_BUILD_TESTS)
@@ -62,13 +64,11 @@ if(ROUTER_BUILD_TESTS)
       PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/pugixml-1.15/src
     )
 
     target_link_libraries(${test_name}
       PRIVATE
         router_core
-        pugixml
     )
 
     target_compile_definitions(${test_name}
