@@ -193,3 +193,25 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, ui
     std::reverse(path.begin(), path.end());
     return path;
 }
+
+uint64_t Graph::getClosestEdgeId(Coordinates coords)
+{
+    double minDistance = std::numeric_limits<double>::infinity();
+    uint64_t closestEdgeId = 0;
+
+    for (const auto &[edgeId, edge] : mEdges)
+    {
+        const auto &path = edge->getPath();
+        for (size_t i = 0; i < path.size() - 1; ++i)
+        {
+            double distance = HelperFunctions::distancePointToSegment(coords, path[i], path[i + 1]);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestEdgeId = edgeId;
+            }
+        }
+    }
+
+    return closestEdgeId;
+}

@@ -21,6 +21,8 @@ class Graph
 
         const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> &getNodes() const { return mNodes; }
 
+        uint64_t getClosestEdgeId(Coordinates coords);
+
     private:
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> mNodes;
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> mEdges;

@@ -55,6 +55,33 @@ namespace HelperFunctions
         return totalLength;
     }
 
+    double distancePointToSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd)
+    {
+        double lat1 = segStart.getLatitude() * DEG_TO_RAD;
+        double lon1 = segStart.getLongitude() * DEG_TO_RAD;
+        double lat2 = segEnd.getLatitude() * DEG_TO_RAD;
+        double lon2 = segEnd.getLongitude() * DEG_TO_RAD;
+        double latP = point.getLatitude() * DEG_TO_RAD;
+        double lonP = point.getLongitude() * DEG_TO_RAD;
+
+        double dLat = lat2 - lat1;
+        double dLon = lon2 - lon1;
+
+        if (dLat == 0 && dLon == 0)
+        {
+            return haversine(point, segStart);
+        }
+
+        double t = ((latP - lat1) * dLat + (lonP - lon1) * dLon) / (dLat * dLat + dLon * dLon);
+        t = std::max(0.0, std::min(1.0, t));
+
+        double projLat = lat1 + t * dLat;
+        double projLon = lon1 + t * dLon;
+
+        Coordinates projection(projLat / DEG_TO_RAD, projLon / DEG_TO_RAD);
+        return haversine(point, projection);
+    }
+
     void exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename)
     {
         std::ofstream file(filename);
