@@ -33,6 +33,7 @@ target_include_directories(router_core
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/pugixml-1.15/src
 )
 target_compile_features(router_core PUBLIC cxx_std_17)
 
@@ -47,5 +48,34 @@ target_link_libraries(router_app
 
 if(ROUTER_BUILD_TESTS)
   enable_testing()
-  # Tests können hier später via add_subdirectory(tests) hinzugefügt werden.
+
+  file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/*_test.cpp"
+  )
+
+  foreach(test_src ${TEST_SOURCES})
+    get_filename_component(test_name ${test_src} NAME_WE)
+
+    add_executable(${test_name} ${test_src})
+
+    target_include_directories(${test_name}
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/pugixml-1.15/src
+    )
+
+    target_link_libraries(${test_name}
+      PRIVATE
+        router_core
+        pugixml
+    )
+
+    target_compile_definitions(${test_name}
+      PRIVATE
+        PROJECT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    add_test(NAME ${test_name} COMMAND ${test_name})
+  endforeach()
 endif()
