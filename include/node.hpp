@@ -12,7 +12,7 @@ class Edge;
 class Node : public OsmNode
 {
     public:
-        Node(OsmNode &other) : OsmNode(other) {}
+        Node(const OsmNode &other) : OsmNode(other) {}
 
         std::vector<std::shared_ptr<Edge>> edges;
 
