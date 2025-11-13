@@ -84,12 +84,13 @@ void RouterServer::handleClient(int clientFd)
 {
     auto &nodelist = graph_.getNodes();
     sendAll(clientFd, "Verbunden mit Router-Server. "
-                      "Geben Sie \"<startId> <zielId>\", leer fuer Zufall oder \"exit\" ein.\n");
+                      "Geben Sie \"<startId> <zielId>\", \"-c <startLat>,<startLon> <zielLat>,<zielLon>\", "
+                      "leer fuer Zufall oder \"exit\" ein.\n");
 
     std::string line;
     while (true)
     {
-        if (!sendAll(clientFd, "Bitte Start- und Zielknoten-ID eingeben: "))
+        if (!sendAll(clientFd, "Bitte '-i <startId> <zielId>' oder '-c <lat>,<lon> <lat>,<lon>' eingeben (Enter fuer Zufall): "))
         {
             break;
         }
@@ -102,6 +103,11 @@ void RouterServer::handleClient(int clientFd)
         std::istringstream iss(line);
         uint64_t startId = 0;
         uint64_t goalId = 0;
+        double startLat = 0.0;
+        double startLon = 0.0;
+        double goalLat = 0.0;
+        double goalLon = 0.0;
+        bool useCoordinates = false;
 
         if (line.empty())
         {
@@ -124,26 +130,86 @@ void RouterServer::handleClient(int clientFd)
                 break;
             }
 
-            if (!(iss >> startId >> goalId))
+            if (!line.empty() && line[0] == '-')
             {
-                sendAll(clientFd, "Ungueltige Eingabe. Bitte zwei numerische IDs senden.\n");
-                continue;
+                std::string flag;
+                iss >> flag;
+                if (flag == "-c" || flag == "--coords" || flag == "--coordinates")
+                {
+                    useCoordinates = true;
+                }
+                else if (flag == "-i" || flag == "--ids")
+                {
+                    useCoordinates = false;
+                }
+                else
+                {
+                    sendAll(clientFd, "Unbekannte Option. Nutzen Sie '-i' fuer IDs oder '-c' fuer Koordinaten.\n");
+                    continue;
+                }
+            }
+            else
+            {
+                iss.clear();
+                iss.str(line);
             }
 
-            if (nodelist.find(startId) == nodelist.end())
+            if (useCoordinates)
             {
-                sendAll(clientFd, "Startknoten nicht gefunden.\n");
-                continue;
-            }
+                auto readCoordinate = [&iss](double &value) -> bool {
+                    if (!(iss >> value))
+                    {
+                        return false;
+                    }
+                    iss >> std::ws;
+                    if (iss.peek() == ',')
+                    {
+                        iss.ignore();
+                        iss >> std::ws;
+                    }
+                    return true;
+                };
 
-            if (nodelist.find(goalId) == nodelist.end())
+                if (!(readCoordinate(startLat) && readCoordinate(startLon) && readCoordinate(goalLat) && readCoordinate(goalLon)))
+                {
+                    sendAll(clientFd, "Ungueltige Koordinaten. Beispiel: -c 49.04878,8.41707 49.05339,8.43972\n");
+                    continue;
+                }
+            }
+            else
             {
-                sendAll(clientFd, "Zielknoten nicht gefunden.\n");
-                continue;
+                if (!(iss >> startId >> goalId))
+                {
+                    sendAll(clientFd, "Ungueltige Eingabe. Bitte '-i <startId> <zielId>' oder zwei numerische IDs senden.\n");
+                    continue;
+                }
+
+                if (nodelist.find(startId) == nodelist.end())
+                {
+                    sendAll(clientFd, "Startknoten nicht gefunden.\n");
+                    continue;
+                }
+
+                if (nodelist.find(goalId) == nodelist.end())
+                {
+                    sendAll(clientFd, "Zielknoten nicht gefunden.\n");
+                    continue;
+                }
             }
         }
 
-        auto path = graph_.aStar(startId, goalId);
+        std::vector<std::tuple<uint64_t, Coordinates>> path;
+        if (useCoordinates)
+        {
+            Coordinates startCoords(startLat, startLon);
+            Coordinates goalCoords(goalLat, goalLon);
+            path = graph_.aStar(startCoords, goalCoords);
+        }
+        else
+        {
+            path = graph_.aStar(startId, goalId);
+        }
+
         if (path.empty())
         {
             sendAll(clientFd, "Kein Pfad gefunden.\n");
@@ -155,8 +221,17 @@ void RouterServer::handleClient(int clientFd)
         HelperFunctions::exportPathToGeoJSON(path, fileName);
 
         std::ostringstream response;
-        response << "Pfad von " << startId << " nach " << goalId << " mit " << path.size()
-                 << " Punkten exportiert nach " << fileName << "\n";
+        if (useCoordinates)
+        {
+            response << "Pfad von (" << Coordinates(startLat, startLon) << ") nach ("
+                     << Coordinates(goalLat, goalLon) << ") mit " << path.size()
+                     << " Punkten exportiert nach " << fileName << "\n";
+        }
+        else
+        {
+            response << "Pfad von " << startId << " nach " << goalId << " mit " << path.size()
+                     << " Punkten exportiert nach " << fileName << "\n";
+        }
         sendAll(clientFd, response.str());
     }
 }

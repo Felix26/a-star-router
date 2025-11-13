@@ -66,8 +66,8 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     mNodes.emplace(newNodeId, newNode);
     mSplitItemIds.push_back(newNodeId);
 
-    // Create two new edges
-    std::vector<Coordinates> path1(path.begin() + segmentIndex, path.begin() + segmentIndex + 1);
+    // Create two new edges by splitting the original polyline at the segment index
+    std::vector<Coordinates> path1(path.begin(), path.begin() + segmentIndex + 1);
     path1.push_back(closestCoords);
     double waylength1 = HelperFunctions::calculatePathLength(path1);
     uint64_t edgeId1 = edgeId | ((uint64_t)++mSplitItemCount << 62); // New sub-way ID
@@ -248,6 +248,21 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, ui
     }
 
     std::reverse(path.begin(), path.end());
+    return path;
+}
+
+std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(Coordinates startCoords, Coordinates goalCoords)
+{
+    auto [closestStartPoint, closestStartEdgeId, startSegment] = getEdgeSplit(startCoords);
+    uint64_t newNodeIdStart = addSplit(closestStartPoint, closestStartEdgeId, startSegment);
+
+    auto [closestEndPoint, closestEndEdgeId, endSegment] = getEdgeSplit(goalCoords);
+    uint64_t newNodeIdEnd = addSplit(closestEndPoint, closestEndEdgeId, endSegment);
+
+    std::vector<std::tuple<uint64_t, Coordinates>> path = aStar(newNodeIdStart, newNodeIdEnd);
+
+    removeSplitItems();
+
     return path;
 }
 
