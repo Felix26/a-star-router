@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <memory>
+#include <tuple>
 
 #include "library.hpp"
 #include "edge.hpp"
@@ -194,10 +195,26 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(uint64_t startId, ui
     return path;
 }
 
-uint64_t Graph::getClosestEdgeId(Coordinates coords)
+std::tuple<Coordinates, uint64_t, uint8_t> Graph::getEdgeSplit(Coordinates coords)
+{
+    const auto [edgeId, segmentIndex] = getClosestSegment(coords);
+    Coordinates closestPoint = getClosestPointOnEdge(coords, edgeId, segmentIndex);
+    return std::tuple<Coordinates, uint64_t, uint8_t>(closestPoint, edgeId, segmentIndex);
+}
+
+Coordinates Graph::getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex)
+{
+    const auto edge = mEdges.at(edgeId);
+    const auto &path = edge->getPath();
+
+    return HelperFunctions::getProjectionOnSegment(coords, path[segmentIndex], path[segmentIndex + 1]);
+}
+
+std::tuple<uint64_t, uint8_t> Graph::getClosestSegment(Coordinates coords)
 {
     double minDistance = std::numeric_limits<double>::infinity();
     uint64_t closestEdgeId = 0;
+    uint8_t segmentIndex;
 
     for (const auto &[edgeId, edge] : mEdges)
     {
@@ -209,9 +226,10 @@ uint64_t Graph::getClosestEdgeId(Coordinates coords)
             {
                 minDistance = distance;
                 closestEdgeId = edgeId;
+                segmentIndex = i;
             }
         }
     }
 
-    return closestEdgeId;
+    return std::tuple(closestEdgeId, segmentIndex);
 }
