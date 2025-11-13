@@ -16,7 +16,7 @@ class Graph
         void addOsmNode(std::shared_ptr<OsmNode> node);
         void addOsmWay(const OsmWay *way);
 
-        void addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t segmentIndex);
+        uint64_t addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t segmentIndex);
 
         void removeSplitItems();
 
@@ -39,4 +39,5 @@ class Graph
         Coordinates getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex);
 
         std::vector<uint64_t> mSplitItemIds;
+        uint8_t mSplitItemCount = 0;
 };
