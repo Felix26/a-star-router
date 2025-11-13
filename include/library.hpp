@@ -26,6 +26,8 @@ namespace HelperFunctions
 
     double distancePointToSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd);
 
+    Coordinates getProjectionOnSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd);
+
     void exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename);
 
     void readOSMFile(const std::string &filepath,

@@ -221,6 +221,12 @@ namespace HelperFunctions
 
     double distancePointToSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd)
     {
+        Coordinates projection = getProjectionOnSegment(point, segStart, segEnd);
+        return haversine(point, projection);
+    }
+
+    Coordinates getProjectionOnSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd)
+    {
         double lat1 = segStart.getLatitude() * DEG_TO_RAD;
         double lon1 = segStart.getLongitude() * DEG_TO_RAD;
         double lat2 = segEnd.getLatitude() * DEG_TO_RAD;
@@ -233,7 +239,7 @@ namespace HelperFunctions
 
         if (dLat == 0 && dLon == 0)
         {
-            return haversine(point, segStart);
+            return segStart;
         }
 
         double t = ((latP - lat1) * dLat + (lonP - lon1) * dLon) / (dLat * dLat + dLon * dLon);
@@ -242,8 +248,7 @@ namespace HelperFunctions
         double projLat = lat1 + t * dLat;
         double projLon = lon1 + t * dLon;
 
-        Coordinates projection(projLat / DEG_TO_RAD, projLon / DEG_TO_RAD);
-        return haversine(point, projection);
+        return Coordinates(projLat / DEG_TO_RAD, projLon / DEG_TO_RAD);
     }
 
     void exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename)
