@@ -27,7 +27,7 @@ int main()
         Coordinates testCoordinates = {49.053453, 8.384183};
         uint64_t assertionEdgeId = 779542839;
 
-        uint64_t closestEdgeId = graph.getClosestEdgeId(testCoordinates) & 0x00FFFFFFFFFFFFFF;
+        uint64_t closestEdgeId = std::get<1>(graph.getEdgeSplit(testCoordinates)) & 0x00FFFFFFFFFFFFFF;
 
         assert(closestEdgeId == assertionEdgeId);
         
@@ -35,7 +35,7 @@ int main()
         testCoordinates = {49.050133, 8.390682};
         assertionEdgeId = 132153778;
 
-        closestEdgeId = graph.getClosestEdgeId(testCoordinates) & 0x00FFFFFFFFFFFFFF;
+        closestEdgeId = std::get<1>(graph.getEdgeSplit(testCoordinates)) & 0x00FFFFFFFFFFFFFF;
 
         assert(closestEdgeId == assertionEdgeId);
     }

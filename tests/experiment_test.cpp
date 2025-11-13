@@ -26,7 +26,7 @@ int main()
 
         Coordinates testCoordinates = {49.055824, 8.385704};
 
-        std::cout << (graph.getClosestEdgeId(testCoordinates) & 0x00FFFFFFFFFFFFFF);
+        std::cout << (std::get<1>(graph.getEdgeSplit(testCoordinates)) & 0x00FFFFFFFFFFFFFF);
     }
     catch (const std::exception &e)
     {
