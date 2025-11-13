@@ -55,6 +55,60 @@ void Graph::addOsmWay(const OsmWay *way)
     }
 }
 
+void Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t segmentIndex)
+{
+    const auto edge = mEdges.at(edgeId);
+    const auto &path = edge->getPath();
+
+    // Create new node at closest point
+    uint64_t newNodeId = (uint64_t) -1; // Generate unique ID for the new node
+    auto newNode = std::make_shared<Node>(OsmNode(newNodeId, closestCoords.getLatitude(), closestCoords.getLongitude()));
+    mNodes.emplace(newNodeId, newNode);
+    mSplitItemIds.push_back(newNodeId);
+
+    // Create two new edges
+    std::vector<Coordinates> path1(path.begin() + segmentIndex, path.begin() + segmentIndex + 1);
+    path1.push_back(closestCoords);
+    double waylength1 = HelperFunctions::calculatePathLength(path1);
+    uint64_t edgeId1 = edgeId | (1ULL << 62); // New sub-way ID
+    auto edge1 = std::make_shared<Edge>(edgeId1, waylength1, edge->from(), newNode, path1);
+    mEdges.emplace(edgeId1, edge1);
+    mSplitItemIds.push_back(edgeId1);
+    edge->from()->edges.push_back(edge1);
+    newNode->edges.push_back(edge1);
+
+    std::vector<Coordinates> path2;
+    path2.push_back(closestCoords);
+    path2.insert(path2.end(), path.begin() + segmentIndex + 1, path.end());
+    double waylength2 = HelperFunctions::calculatePathLength(path2);
+    uint64_t edgeId2 = edgeId | (2ULL << 62); // New sub-way ID
+    auto edge2 = std::make_shared<Edge>(edgeId2, waylength2, newNode, edge->to(), path2);
+    mEdges.emplace(edgeId2, edge2);
+    mSplitItemIds.push_back(edgeId2);
+    newNode->edges.push_back(edge2);
+    edge->to()->edges.push_back(edge2);
+}
+
+void Graph::removeSplitItems()
+{
+    for (const auto &id : mSplitItemIds)
+    {
+        // Remove edges
+        if (mEdges.find(id) != mEdges.end())
+        {
+            mEdges.erase(id);
+            continue;
+        }
+
+        // Remove nodes
+        if (mNodes.find(id) != mNodes.end())
+        {
+            mNodes.erase(id);
+        }
+    }
+    mSplitItemIds.clear();
+}
+
 void Graph::printGraph()
 {
     std::cout << "EDGES:\n";

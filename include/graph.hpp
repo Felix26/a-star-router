@@ -16,6 +16,10 @@ class Graph
         void addOsmNode(std::shared_ptr<OsmNode> node);
         void addOsmWay(const OsmWay *way);
 
+        void addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t segmentIndex);
+
+        void removeSplitItems();
+
         void printGraph();
 
         std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId);
@@ -33,4 +37,6 @@ class Graph
 
         // Returns the closest point on the segment to the given edge and the index of the segment
         Coordinates getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex);
+
+        std::vector<uint64_t> mSplitItemIds;
 };
