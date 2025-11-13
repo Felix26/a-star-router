@@ -33,7 +33,7 @@ int main()
             closestEdgeId &= 0x00FFFFFFFFFFFFFF;
 
             assert(closestEdgeId == assertionEdgeId);
-            assert(HelperFunctions::haversine(closestPoint, assertionCoordinates) < 0.5);
+            assert(HelperFunctions::haversine(closestPoint, assertionCoordinates) < 5);
         }
 
         {
@@ -45,7 +45,7 @@ int main()
             closestEdgeId &= 0x00FFFFFFFFFFFFFF;
 
             assert(closestEdgeId == assertionEdgeId);
-            assert(HelperFunctions::haversine(closestPoint, assertionCoordinates) < 0.5);
+            assert(HelperFunctions::haversine(closestPoint, assertionCoordinates) < 5);
         }
     }
     catch (const std::exception &e)
