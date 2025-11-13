@@ -26,6 +26,8 @@ osmfilter <dateiname>.osm \
 
 Start des Routers mit `./router_app <dateiname_gefiltert>.osm`.
 
-Der Start kann je nach Kartengröße mehrere Minuten in Anspruch nehmen. Wichtig: Es sollte immer 5x mehr freier RAM als die Karte groß ist zur Verfügung stehen.
+Der Start kann je nach Kartengröße mehrere Minuten in Anspruch nehmen. Wichtig: Es sollte immer 2x mehr freier RAM als die Karte groß ist zur Verfügung stehen.
 
-Nach der Initialisierung können zwei OSM-Node-IDs mit Leerzeichen getrennt angegeben werden: `3090980390 33122434`. Die Route wird daraufhin mit fortlaufendem Index im Programmverzeichnis als GeoJSON gespeichert.
+Nach der Initialisierung läuft ein Socket-Server mit dem default-Port 5555. Mit diesem kann sich über `nc localhost 5555` in einem anderen Terminal verbunden werden. Dort können zwei OSM-Node-IDs mit Leerzeichen getrennt angegeben werden: `3090980390 33122434`. Die Route wird daraufhin mit fortlaufendem Index im Programmverzeichnis als GeoJSON gespeichert. Alternativ kann einfach Enter gedrückt werden, dann wird eine zufällige Route generiert.
+
+Die GeoJSON-Dateien können bspw. mit [https://geojson.io/](https://geojson.io/) visualisiert werden.
