@@ -218,20 +218,21 @@ void RouterServer::handleClient(int clientFd)
 
         const std::string fileName = "astar_path_" + std::to_string(pathCounter_++) + ".geojson";
         pathCounter_ %= 10;
-        HelperFunctions::exportPathToGeoJSON(path, fileName);
+        std::string filepath = HelperFunctions::exportPathToGeoJSON(path, fileName);
 
         std::ostringstream response;
+
+        response << "Pfad von ";
         if (useCoordinates)
         {
-            response << "Pfad von (" << Coordinates(startLat, startLon) << ") nach ("
-                     << Coordinates(goalLat, goalLon) << ") mit " << path.size()
-                     << " Punkten exportiert nach " << fileName << "\n";
+            response << "(" << Coordinates(startLat, startLon) << ") nach ("
+                     << Coordinates(goalLat, goalLon) << ")";
         }
         else
         {
-            response << "Pfad von " << startId << " nach " << goalId << " mit " << path.size()
-                     << " Punkten exportiert nach " << fileName << "\n";
+            response << startId << " nach " << goalId;
         }
+        response << " mit " << path.size() << " Punkten exportiert nach " << filepath << "\n";
         sendAll(clientFd, response.str());
     }
 }

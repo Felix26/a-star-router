@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <libxml/xmlreader.h>
 
@@ -251,13 +252,13 @@ namespace HelperFunctions
         return Coordinates(projLat / DEG_TO_RAD, projLon / DEG_TO_RAD);
     }
 
-    void exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename)
+    std::string exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename)
     {
         std::ofstream file(filename);
         if (!file.is_open())
         {
             std::cerr << "Error opening file for writing: " << filename << "\n";
-            return;
+            return "";
         }
 
         file << "{\n";
@@ -286,6 +287,19 @@ namespace HelperFunctions
         file << "}\n";
 
         file.close();
+
+        try
+        {
+            // Konvertiert den (relativen) Dateinamen in einen absoluten Pfad
+            std::filesystem::path absolute_path = std::filesystem::absolute(filename);
+            return absolute_path.string();
+        }
+
+        catch (const std::exception& e)
+        {
+            std::cerr << "Error determining absolute path: " << e.what() << "\n";
+            return filename; // Rückgabe des ursprünglichen Pfades als Fallback
+        }
     }
 
     void readOSMFile(const std::string &filepath,

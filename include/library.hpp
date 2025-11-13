@@ -28,7 +28,7 @@ namespace HelperFunctions
 
     Coordinates getProjectionOnSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd);
 
-    void exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename);
+    std::string exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename);
 
     void readOSMFile(const std::string &filepath,
                      ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
