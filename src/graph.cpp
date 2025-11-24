@@ -273,14 +273,14 @@ std::vector<std::tuple<uint64_t, Coordinates>> Graph::aStar(Coordinates startCoo
     return path;
 }
 
-std::tuple<Coordinates, uint64_t, uint8_t> Graph::getEdgeSplit(Coordinates coords)
+std::tuple<Coordinates, uint64_t, uint8_t> Graph::getEdgeSplit(Coordinates coords) const
 {
     const auto [edgeId, segmentIndex] = getClosestSegment(coords);
     Coordinates closestPoint = getClosestPointOnEdge(coords, edgeId, segmentIndex);
     return std::tuple<Coordinates, uint64_t, uint8_t>(closestPoint, edgeId, segmentIndex);
 }
 
-Coordinates Graph::getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex)
+Coordinates Graph::getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex) const
 {
     const auto edge = mEdges.at(edgeId);
     const auto &path = edge->getPath();
@@ -288,7 +288,7 @@ Coordinates Graph::getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, ui
     return HelperFunctions::getProjectionOnSegment(coords, path[segmentIndex], path[segmentIndex + 1]);
 }
 
-std::tuple<uint64_t, uint8_t> Graph::getClosestSegment(Coordinates coords)
+std::tuple<uint64_t, uint8_t> Graph::getClosestSegment(Coordinates coords) const
 {
     double minDistance = std::numeric_limits<double>::infinity();
     uint64_t closestEdgeId = 0;

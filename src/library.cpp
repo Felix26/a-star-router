@@ -56,8 +56,7 @@ namespace HelperFunctions
             return value;
         }
 
-        void processNodeElement(xmlTextReaderPtr reader,
-                                ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes)
+        void processNodeElement(xmlTextReaderPtr reader, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes)
         {
             const std::string idStr = getAttributeValue(reader, "id");
             const std::string latStr = getAttributeValue(reader, "lat");
@@ -81,9 +80,7 @@ namespace HelperFunctions
             }
         }
 
-        void processWayElement(xmlTextReaderPtr reader,
-                               ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
-                               ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+        void processWayElement(xmlTextReaderPtr reader, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
         {
             const std::string idStr = getAttributeValue(reader, "id");
             if (idStr.empty())
