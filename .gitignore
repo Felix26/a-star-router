@@ -34,3 +34,6 @@
 
 # OSM-Files
 *.osm
+
+# GPX-Dateien
+*.gpx

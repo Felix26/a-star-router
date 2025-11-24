@@ -302,13 +302,10 @@ namespace HelperFunctions
         }
     }
 
-    void readOSMFile(const std::string &filepath,
-                     ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
-                     ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+    void readOSMFile(const std::string &filepath, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
     {
         XmlParserGuard parserGuard;
-        xmlTextReaderPtr readerPtr = xmlReaderForFile(filepath.c_str(), nullptr,
-                                                      XML_PARSE_NOBLANKS | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+        xmlTextReaderPtr readerPtr = xmlReaderForFile(filepath.c_str(), nullptr, XML_PARSE_NOBLANKS | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
         if (!readerPtr)
         {
             throw std::runtime_error("Error reading OSM file: " + filepath);
@@ -358,9 +355,7 @@ namespace HelperFunctions
         }
     }
 
-    void createGraph(Graph &graph,
-                     ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
-                     ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+    void createGraph(Graph &graph, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
     {
         for (auto &node : nodes)
         {
