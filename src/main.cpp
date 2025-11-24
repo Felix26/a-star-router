@@ -16,8 +16,9 @@
 
 namespace
 {
-constexpr uint16_t kDefaultPort = 5555;
+    constexpr uint16_t kDefaultPort = 5555;
 }
+
 int main(int argc, char *argv[])
 {
     srand(0);

@@ -63,28 +63,35 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     // Create new node at closest point
     uint64_t newNodeId = (uint64_t) - ++mSplitItemCount; // Generate unique ID for the new node
     auto newNode = std::make_shared<Node>(OsmNode(newNodeId, closestCoords.getLatitude(), closestCoords.getLongitude()));
+
     mNodes.emplace(newNodeId, newNode);
     mSplitItemIds.push_back(newNodeId);
+
 
     // Create two new edges by splitting the original polyline at the segment index
     std::vector<Coordinates> path1(path.begin(), path.begin() + segmentIndex + 1);
     path1.push_back(closestCoords);
     double waylength1 = HelperFunctions::calculatePathLength(path1);
+
     uint64_t edgeId1 = edgeId | ((uint64_t)++mSplitItemCount << 62); // New sub-way ID
     auto edge1 = std::make_shared<Edge>(edgeId1, waylength1, edge->from(), newNode, path1);
     mEdges.emplace(edgeId1, edge1);
     mSplitItemIds.push_back(edgeId1);
+
     edge->from()->edges.push_back(edge1);
     newNode->edges.push_back(edge1);
+
 
     std::vector<Coordinates> path2;
     path2.push_back(closestCoords);
     path2.insert(path2.end(), path.begin() + segmentIndex + 1, path.end());
     double waylength2 = HelperFunctions::calculatePathLength(path2);
+
     uint64_t edgeId2 = edgeId | ((uint64_t)++mSplitItemCount << 62); // New sub-way ID
     auto edge2 = std::make_shared<Edge>(edgeId2, waylength2, newNode, edge->to(), path2);
     mEdges.emplace(edgeId2, edge2);
     mSplitItemIds.push_back(edgeId2);
+    
     newNode->edges.push_back(edge2);
     edge->to()->edges.push_back(edge2);
 
