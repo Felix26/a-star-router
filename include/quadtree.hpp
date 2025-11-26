@@ -9,6 +9,8 @@
 #include "edge.hpp"
 #include "graph.hpp"
 
+struct ClosestEdges;
+
 class Quadtree
 {
     public:
@@ -18,7 +20,7 @@ class Quadtree
 
         const Box &getBoundary() const { return mBoundary; }
 
-        std::ostream& operator<<(std::ostream& os) const;
+        std::vector<ClosestEdges> getClosestEdges(const Coordinates &point, uint8_t resultCount = 1) const;
         
         friend std::ostream& operator<<(std::ostream& os, const Quadtree& qt);
 
@@ -40,4 +42,16 @@ class Quadtree
         std::vector<std::pair<uint64_t, uint8_t>> mEdgeSubwayIDs;
 
         bool subdivide();
+};
+
+struct ClosestEdges
+{
+    double distance;
+    uint64_t edgeId;
+    uint8_t subwayId;
+
+    bool operator<(const ClosestEdges &other) const
+    {
+        return distance < other.distance;
+    }
 };

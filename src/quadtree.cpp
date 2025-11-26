@@ -1,5 +1,10 @@
 #include "quadtree.hpp"
 
+#include <queue>
+#include <algorithm>
+
+#include "library.hpp"
+
 Quadtree::Quadtree(const Graph &graph, const Box &boundary, uint8_t level)
     : mGraph(graph), mBoundary(boundary), mLevel(level)
 {
@@ -67,6 +72,47 @@ void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
         // Passt in keines der Kinder, also hier behalten
         mEdgeSubwayIDs.emplace_back(edgeId, subwayId);
     }
+}
+
+std::vector<ClosestEdges> Quadtree::getClosestEdges(const Coordinates &point, uint8_t resultCount) const
+{
+    using PQItem = ClosestEdges; // (distance, (edgeId, subwayId))
+    std::priority_queue<PQItem, std::vector<PQItem>, std::less<PQItem>> closestEdges;
+    closestEdges.push(PQItem{std::numeric_limits<double>::max(), 0, 0});
+
+    for(const auto &[edgeId, subwayId] : mEdgeSubwayIDs)
+    {
+        auto edge = mGraph.getEdge(edgeId);
+        double distance = HelperFunctions::distancePointToSegment(point,edge->getPath()[subwayId],edge->getPath()[subwayId + 1]);
+
+        closestEdges.push(ClosestEdges{distance, edgeId, subwayId});
+        if(closestEdges.size() > resultCount) closestEdges.pop();
+    }
+
+    // Recurse into children
+    std::vector<Quadtree *> children = {mNorthWest.get(), mNorthEast.get(), mSouthWest.get(), mSouthEast.get()};
+    for(auto child : children)
+    {
+        if(child != nullptr && child->getBoundary().getDistance(point) < closestEdges.top().distance)
+        {
+            auto childClosest = child->getClosestEdges(point, resultCount);
+            for(const auto &ce : childClosest)
+            {
+                closestEdges.push(ce);
+                if(closestEdges.size() > resultCount) closestEdges.pop();
+            }
+        }
+    }
+
+    std::vector<ClosestEdges> result;
+    while(!closestEdges.empty())
+    {
+        result.push_back(closestEdges.top());
+        closestEdges.pop();
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
 }
 
 std::ostream& operator<<(std::ostream& os, const Quadtree& qt)

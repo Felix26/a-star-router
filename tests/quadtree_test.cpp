@@ -33,6 +33,15 @@ int main()
             }
         }
         std::cout << quadtree;
+
+        Coordinates testPoint(49.053357, 8.384253);
+
+        auto closestEdges = quadtree.getClosestEdges(testPoint, 10);
+        std::cout << "Closest edges to point " << testPoint << ":\n";
+        for(const auto &ce : closestEdges)
+        {
+            std::cout << "Edge ID: " << (ce.edgeId % 0x00FFFFFFFFFFFFFF) << ", Subway ID: " << static_cast<int>(ce.subwayId) << ", Distance: " << ce.distance << " m\n";
+        }
     }
     catch (const std::exception &e)
     {

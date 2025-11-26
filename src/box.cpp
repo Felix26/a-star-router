@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "library.hpp"
+
 Box::Box(const Coordinates &topLeft, const Coordinates &bottomRight)
 {
     mMinLatitude = std::min(topLeft.getLatitude(), bottomRight.getLatitude());
@@ -25,4 +27,11 @@ bool Box::contains(const Coordinates &point) const
 bool Box::contains(const Box &other) const
 {
     return contains(other.getTopLeft()) && contains(other.getBottomRight());
+}
+
+double Box::getDistance(const Coordinates &point) const
+{
+    double lat = std::max(mMinLatitude, std::min(point.getLatitude(), mMaxLatitude));
+    double lon = std::max(mMinLongitude, std::min(point.getLongitude(), mMaxLongitude));
+    return HelperFunctions::haversine(point, Coordinates(lat, lon));
 }
