@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <unordered_dense.h>
+#include <cassert>
+
 #include "osmway.hpp"
 #include "osmnode.hpp"
 #include "graph.hpp"
@@ -42,6 +44,10 @@ int main()
         {
             std::cout << "Edge ID: " << (ce.edgeId % 0x00FFFFFFFFFFFFFF) << ", Subway ID: " << static_cast<int>(ce.subwayId) << ", Distance: " << ce.distance << " m\n";
         }
+
+        assert(closestEdges.size() == 10);
+        assert(closestEdges[0].distance < closestEdges[1].distance);
+        assert(closestEdges[0].distance < 10);
     }
     catch (const std::exception &e)
     {

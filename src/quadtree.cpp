@@ -102,7 +102,7 @@ void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, s
     {
         auto edge = mGraph.getEdge(edgeId);
 
-        // Early skip if bounding box distance is already larger than the farthest closest edge found (causes ~5% performance improvement)
+        // Early skip if bounding box distance is already larger than the farthest closest edge found
         if(edge->getBoundingBox(subwayId).getEstDistanceSquared(point) >= closestEdges.top().distance && closestEdges.size() >= resultCount)
         {
             continue;
