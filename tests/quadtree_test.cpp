@@ -7,6 +7,8 @@
 #include "graph.hpp"
 #include "library.hpp"
 
+#include "quadtree.hpp"
+
 int main()
 {
     try
@@ -15,18 +17,22 @@ int main()
         ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
         ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
-        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/karlsruhe_roads_min.osm";
+        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/neureut.osm";
         HelperFunctions::readOSMFile(osmPath, nodes, ways);
         HelperFunctions::createGraph(graph, nodes, ways);
 
+        Box boundary(Coordinates(49.7913749328, 7.5113934084), Coordinates(47.5338000528, 10.4918239143));
+        Quadtree quadtree(graph, boundary);
         
-        GPXParser parser;
-
-        parser.loadGPXFiles("/home/felixm/Desktop/Studienarbeit/Router/testdata/gpxdata");
-
-        //parser.fillEdgeIDs(graph);
-
-        std::cout << "Number of found edges: " << parser.getEdgeIDs().size() << std::endl;
+        for(const auto &[edgeId, edge] : graph.getEdges())
+        {
+            const auto &path = edge->getPath();
+            for(size_t subWayId = 0; subWayId < path.size() - 1; subWayId++)
+            {
+                quadtree.insert(edgeId, subWayId);
+            }
+        }
+        std::cout << quadtree;
     }
     catch (const std::exception &e)
     {

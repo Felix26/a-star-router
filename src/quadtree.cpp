@@ -69,6 +69,24 @@ void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
     }
 }
 
+std::ostream& operator<<(std::ostream& os, const Quadtree& qt)
+{
+    if(qt.mEdgeSubwayIDs.size() > 0) os << "Level: " << static_cast<int>(qt.mLevel)
+       << ", Boundary: [" << qt.mBoundary.getTopLeft()
+       << " to " << qt.mBoundary.getBottomRight()
+       << "], Items: " << qt.mEdgeSubwayIDs.size() << "\n";
+
+    if (qt.mNorthWest != nullptr)
+    {
+        os << (qt.mNorthWest->mEdgeSubwayIDs.size() > 0 ? "NW -> " : "") << *qt.mNorthWest;
+        os << (qt.mNorthEast->mEdgeSubwayIDs.size() > 0 ? "NE -> " : "") << *qt.mNorthEast;
+        os << (qt.mSouthWest->mEdgeSubwayIDs.size() > 0 ? "SW -> " : "") << *qt.mSouthWest;
+        os << (qt.mSouthEast->mEdgeSubwayIDs.size() > 0 ? "SE -> " : "") << *qt.mSouthEast;
+    }
+
+    return os;
+}
+
 bool Quadtree::subdivide()
 {
     if(mLevel + 1 > MAX_LEVELS) return false;

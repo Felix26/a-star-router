@@ -3,6 +3,7 @@
 #include <memory>
 #include <cstdint>
 #include <vector>
+#include <iostream>
 
 #include "box.hpp"
 #include "edge.hpp"
@@ -16,6 +17,10 @@ class Quadtree
         void insert(uint64_t edgeId, uint8_t subwayId);
 
         const Box &getBoundary() const { return mBoundary; }
+
+        std::ostream& operator<<(std::ostream& os) const;
+        
+        friend std::ostream& operator<<(std::ostream& os, const Quadtree& qt);
 
     private:
         const Graph &mGraph;
