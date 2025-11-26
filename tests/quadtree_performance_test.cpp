@@ -47,7 +47,7 @@ int main()
         // time to test performance
         auto start = std::chrono::high_resolution_clock::now();
 
-        const uint32_t testCount = 10;
+        const uint32_t testCount = 10000;
 
         for(int i = 0; i < testCount; i++)
         {

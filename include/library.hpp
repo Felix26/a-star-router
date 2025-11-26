@@ -22,6 +22,8 @@ namespace HelperFunctions
 
     double haversine(const Coordinates &coord1, const Coordinates &coord2);
 
+    double euclideanDistanceSquared(const Coordinates &c1, const Coordinates &c2);
+
     double calculatePathLength(const std::vector<Coordinates> &path);
 
     double distancePointToSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd);

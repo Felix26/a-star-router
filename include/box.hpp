@@ -15,6 +15,8 @@ class Box
 
         double getDistance(const Coordinates &point) const;
 
+        double getEstDistanceSquared(const Coordinates &point) const;
+
         const Coordinates getTopLeft() const { return Coordinates(mMinLatitude, mMinLongitude); }
         const Coordinates getTopRight() const { return Coordinates(mMinLatitude, mMaxLongitude); }
         const Coordinates getBottomLeft() const { return Coordinates(mMaxLatitude, mMinLongitude); }

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <queue>
 
 #include "box.hpp"
 #include "edge.hpp"
@@ -42,6 +43,9 @@ class Quadtree
         std::vector<std::pair<uint64_t, uint8_t>> mEdgeSubwayIDs;
 
         bool subdivide();
+
+        void findClosestEdges(const Coordinates &point, uint8_t resultCount,
+                              std::priority_queue<ClosestEdges, std::vector<ClosestEdges>, std::less<ClosestEdges>> &closestEdges) const;
 };
 
 struct ClosestEdges

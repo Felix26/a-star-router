@@ -35,3 +35,10 @@ double Box::getDistance(const Coordinates &point) const
     double lon = std::max(mMinLongitude, std::min(point.getLongitude(), mMaxLongitude));
     return HelperFunctions::haversine(point, Coordinates(lat, lon));
 }
+
+double Box::getEstDistanceSquared(const Coordinates &point) const
+{
+    double lat = std::max(mMinLatitude, std::min(point.getLatitude(), mMaxLatitude));
+    double lon = std::max(mMinLongitude, std::min(point.getLongitude(), mMaxLongitude));
+    return HelperFunctions::euclideanDistanceSquared(point, Coordinates(lat, lon));
+}
