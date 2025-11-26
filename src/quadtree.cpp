@@ -12,6 +12,18 @@ Quadtree::Quadtree(const Graph &graph, const Box &boundary, uint8_t level)
 {
 }
 
+void Quadtree::initQuadTree()
+{
+    for(const auto &[edgeId, edge] : mGraph.getEdges())
+    {
+        const auto &path = edge->getPath();
+        for(size_t subWayId = 0; subWayId < path.size() - 1; subWayId++)
+        {
+            insert(edgeId, subWayId);
+        }
+    }
+}
+
 void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
 {
     const Box edgeBox = mGraph.getEdge(edgeId)->getBoundingBox(subwayId);
@@ -139,6 +151,7 @@ void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, s
         child.second->findClosestEdges(point, resultCount, closestEdges);
     }
 }
+
 
 std::ostream& operator<<(std::ostream& os, const Quadtree& qt)
 {

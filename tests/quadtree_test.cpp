@@ -25,15 +25,8 @@ int main()
 
         Box boundary(Coordinates(49.7913749328, 7.5113934084), Coordinates(47.5338000528, 10.4918239143));
         Quadtree quadtree(graph, boundary);
-        
-        for(const auto &[edgeId, edge] : graph.getEdges())
-        {
-            const auto &path = edge->getPath();
-            for(size_t subWayId = 0; subWayId < path.size() - 1; subWayId++)
-            {
-                quadtree.insert(edgeId, subWayId);
-            }
-        }
+        quadtree.initQuadTree();
+
         std::cout << quadtree;
 
         Coordinates testPoint(49.053357, 8.384253);

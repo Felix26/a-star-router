@@ -25,6 +25,8 @@ class Quadtree
         
         friend std::ostream& operator<<(std::ostream& os, const Quadtree& qt);
 
+        void initQuadTree();
+
     private:
         const Graph &mGraph;
 
