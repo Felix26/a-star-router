@@ -6,7 +6,7 @@
 #include <cstdint>
 
 #include "coordinates.hpp"
-#include "graph.hpp"
+#include "quadtree.hpp"
 
 class GPXParser
 {
@@ -15,7 +15,7 @@ class GPXParser
 
         void loadGPXFiles(const std::string &directory);
 
-        void fillEdgeIDs(const Graph &graph);
+        void fillEdgeIDs(const Quadtree &quadtree);
 
         const std::vector<uint64_t>& getEdgeIDs() { return mEdgeIDs; }
     private:

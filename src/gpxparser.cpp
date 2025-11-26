@@ -5,6 +5,7 @@
 #include <pugixml.hpp>
 
 #include "library.hpp"
+#include "quadtree.hpp"
 
 GPXParser::GPXParser()
 {
@@ -30,16 +31,16 @@ void GPXParser::loadGPXFiles(const std::string &directory)
     std::cout << "Number of points: " << mTrackPoints.size() << std::endl;
 }
 
-void GPXParser::fillEdgeIDs(const Graph &graph)
+void GPXParser::fillEdgeIDs(const Quadtree &quadtree)
 {
     uint64_t index = 0;
     for(Coordinates point : mTrackPoints)
     {
-        auto [coords, edgeID, _] = graph.getEdgeSplit(point);
-        if(HelperFunctions::haversine(point, coords) < 10)
+        auto closestEdges = quadtree.getClosestEdges(point);
+        if(closestEdges[0].distance < 10)
         {
-            mEdgeIDs.emplace_back(edgeID);
-            std::cout << index << ": " << edgeID << std::endl;
+            mEdgeIDs.emplace_back(closestEdges[0].edgeId);
+            //std::cout << index << ": " << closestEdges[0].edgeId << std::endl;
         }
         else
         {

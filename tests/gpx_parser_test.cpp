@@ -19,12 +19,15 @@ int main()
         HelperFunctions::readOSMFile(osmPath, nodes, ways);
         HelperFunctions::createGraph(graph, nodes, ways);
 
+        Box boundary(Coordinates(49.73600, 7.949946), Coordinates(48.31047, 9.605534));
+        Quadtree quadtree(graph, boundary);
+        quadtree.initQuadTree();
         
         GPXParser parser;
 
         parser.loadGPXFiles("/home/felixm/Desktop/Studienarbeit/Router/testdata/gpxdata");
 
-        //parser.fillEdgeIDs(graph);
+        parser.fillEdgeIDs(quadtree);
 
         std::cout << "Number of found edges: " << parser.getEdgeIDs().size() << std::endl;
     }
