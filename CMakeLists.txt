@@ -30,6 +30,8 @@ add_library(router_core STATIC
   src/edge.cpp
   src/socket.cpp
   src/gpxparser.cpp
+  src/box.cpp
+  src/quadtree.cpp
 )
 target_include_directories(router_core
   PUBLIC
