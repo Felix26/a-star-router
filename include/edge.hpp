@@ -1,6 +1,7 @@
 #pragma once
 
 #include "node.hpp"
+#include "box.hpp"
 
 #include <array>
 #include <functional>
@@ -20,6 +21,8 @@ class Edge
         std::shared_ptr<Node> to() const { return mNodes[1].lock(); }
 
         const std::vector<Coordinates> &getPath() const { return mPath; }
+
+        const Box getBoundingBox(uint8_t subWayId) const { return Box(mPath[subWayId], mPath[subWayId + 1]); }
 
     private:
         const uint64_t mId;

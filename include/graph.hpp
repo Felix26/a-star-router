@@ -27,6 +27,11 @@ class Graph
         std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords);
 
         const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> &getNodes() const { return mNodes; }
+
+        const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> &getEdges() const { return mEdges; }
+
+        const std::shared_ptr<Edge> getEdge(uint64_t edgeId) const { return mEdges.at(edgeId); }
+
         std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
 
     private:

@@ -21,3 +21,8 @@ bool Box::contains(const Coordinates &point) const
     return mMinLatitude <= point.getLatitude() && point.getLatitude() <= mMaxLatitude
         && mMinLongitude <= point.getLongitude() && point.getLongitude() <= mMaxLongitude;
 }
+
+bool Box::contains(const Box &other) const
+{
+    return contains(other.getTopLeft()) && contains(other.getBottomRight());
+}
