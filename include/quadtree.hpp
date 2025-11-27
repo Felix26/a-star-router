@@ -25,8 +25,6 @@ class Quadtree
         
         friend std::ostream& operator<<(std::ostream& os, const Quadtree& qt);
 
-        void initQuadTree();
-
         const std::vector<Quadtree *> getAllSubtrees() const;
 
         const std::vector<std::pair<uint64_t, uint8_t>> &getEdgeSubwayIDs() const { return mEdgeSubwayIDs; }
@@ -47,6 +45,8 @@ class Quadtree
         uint8_t mLevel;
 
         std::vector<std::pair<uint64_t, uint8_t>> mEdgeSubwayIDs;
+
+        void initQuadTree();
 
         bool subdivide();
 

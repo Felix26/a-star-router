@@ -10,6 +10,7 @@
 Quadtree::Quadtree(const Graph &graph, const Box &boundary, uint8_t level)
     : mGraph(graph), mBoundary(boundary), mLevel(level)
 {
+    if(level == 0) initQuadTree();
 }
 
 void Quadtree::initQuadTree()

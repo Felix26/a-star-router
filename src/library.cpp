@@ -374,16 +374,30 @@ namespace HelperFunctions
         }
     }
 
-    void createGraph(Graph &graph, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
+    const Box createGraph(Graph &graph, ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
     {
+        double minLat = std::numeric_limits<double>::max();
+        double minLon = std::numeric_limits<double>::max();
+        double maxLat = std::numeric_limits<double>::lowest();
+        double maxLon = std::numeric_limits<double>::lowest();
+
         for (auto &node : nodes)
         {
             graph.addOsmNode(node.second);
+            const double lat = node.second->getCoordinates().getLatitude();
+            const double lon = node.second->getCoordinates().getLongitude();
+
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+            if (lon < minLon) minLon = lon;
+            if (lon > maxLon) maxLon = lon;
         }
 
         for (auto &way : ways)
         {
             graph.addOsmWay(way.second.get());
         }
+
+        return Box(Coordinates(minLat, minLon), Coordinates(maxLat, maxLon));
     }
 } // namespace HelperFunctions

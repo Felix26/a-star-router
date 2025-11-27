@@ -32,6 +32,7 @@ add_library(router_core STATIC
   src/gpxparser.cpp
   src/box.cpp
   src/quadtree.cpp
+  src/router.cpp
 )
 target_include_directories(router_core
   PUBLIC

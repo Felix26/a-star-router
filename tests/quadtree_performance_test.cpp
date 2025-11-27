@@ -33,7 +33,6 @@ int main()
 
         Box boundary(Coordinates(49.7913749328, 7.5113934084), Coordinates(47.5338000528, 10.4918239143));
         Quadtree quadtree(graph, boundary);
-        quadtree.initQuadTree();
         //std::cout << quadtree;
 
         // time to test performance
