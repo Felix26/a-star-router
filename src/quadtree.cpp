@@ -24,6 +24,31 @@ void Quadtree::initQuadTree()
     }
 }
 
+const std::vector<Quadtree *> Quadtree::getAllSubtrees() const
+{
+    std::vector<Quadtree *> subtrees;
+    subtrees.push_back(const_cast<Quadtree *>(this));
+
+    if (mNorthWest) {
+        auto nwSubtrees = mNorthWest->getAllSubtrees();
+        subtrees.insert(subtrees.end(), nwSubtrees.begin(), nwSubtrees.end());
+    }
+    if (mNorthEast) {
+        auto neSubtrees = mNorthEast->getAllSubtrees();
+        subtrees.insert(subtrees.end(), neSubtrees.begin(), neSubtrees.end());
+    }
+    if (mSouthWest) {
+        auto swSubtrees = mSouthWest->getAllSubtrees();
+        subtrees.insert(subtrees.end(), swSubtrees.begin(), swSubtrees.end());
+    }
+    if (mSouthEast) {
+        auto seSubtrees = mSouthEast->getAllSubtrees();
+        subtrees.insert(subtrees.end(), seSubtrees.begin(), seSubtrees.end());
+    }
+
+    return subtrees;
+}
+
 void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
 {
     const Box edgeBox = mGraph.getEdge(edgeId)->getBoundingBox(subwayId);

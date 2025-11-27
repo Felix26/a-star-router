@@ -29,6 +29,19 @@ int main()
 
         std::cout << quadtree;
 
+        // Check every edge bounding box
+        for(Quadtree *subtree : quadtree.getAllSubtrees())
+        {
+            for(const auto &[edgeId, subwayId] : subtree->getEdgeSubwayIDs())
+            {
+                auto edge = graph.getEdge(edgeId);
+                if(edge == nullptr) continue;
+
+                const Box &box = edge->getBoundingBox(subwayId);
+                assert(subtree->getBoundary().contains(box));
+            }
+        }
+
         Coordinates testPoint(49.053357, 8.384253);
 
         auto closestEdges = quadtree.getClosestEdges(testPoint, 10);

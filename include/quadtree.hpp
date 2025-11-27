@@ -27,6 +27,10 @@ class Quadtree
 
         void initQuadTree();
 
+        const std::vector<Quadtree *> getAllSubtrees() const;
+
+        const std::vector<std::pair<uint64_t, uint8_t>> &getEdgeSubwayIDs() const { return mEdgeSubwayIDs; }
+
     private:
         const Graph &mGraph;
 
