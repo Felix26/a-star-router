@@ -6,6 +6,17 @@ project(
   LANGUAGES C CXX
 )
 
+# Zusätzlicher Build-Type für Performance-Analyse
+set(CMAKE_CONFIGURATION_TYPES
+    "Debug;Release;RelWithDebInfo;Profile"
+    CACHE STRING "" FORCE
+)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
+endif()
+
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -17,6 +28,19 @@ find_package(LibXml2 REQUIRED)
 add_subdirectory(external/pugixml-1.15)
 
 option(ROUTER_BUILD_TESTS "Tests mit CTest/GTest bauen" ON)
+
+set(ROUTER_PROFILING_COMPILE_FLAGS
+    -O2
+    -g
+    -fno-omit-frame-pointer
+    #-fno-inline
+)
+
+set(ROUTER_PROFILING_LINK_FLAGS
+    -g
+    -fno-omit-frame-pointer
+)
+
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -34,6 +58,16 @@ add_library(router_core STATIC
   src/quadtree.cpp
   src/router.cpp
 )
+
+target_compile_options(router_core PRIVATE
+    $<$<CONFIG:Profile>:${ROUTER_PROFILING_COMPILE_FLAGS}>
+)
+
+target_link_options(router_core PRIVATE
+    $<$<CONFIG:Profile>:${ROUTER_PROFILING_LINK_FLAGS}>
+)
+
+
 target_include_directories(router_core
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
