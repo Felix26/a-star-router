@@ -17,7 +17,7 @@ class Quadtree
     public:
         Quadtree(const Graph &graph, const Box &boundary, uint8_t level = 0);
 
-        void insert(uint64_t edgeId, uint8_t subwayId);
+        void insert(Edge *edge, uint8_t subwayId);
 
         const Box &getBoundary() const { return mBoundary; }
 
@@ -27,7 +27,7 @@ class Quadtree
 
         const std::vector<Quadtree *> getAllSubtrees() const;
 
-        const std::vector<std::pair<uint64_t, uint8_t>> &getEdgeSubwayIDs() const { return mEdgeSubwayIDs; }
+        const std::vector<std::pair<Edge *, uint8_t>> &getEdgeSubwayIDs() const { return mEdgeSubwayIDs; }
 
     private:
         const Graph &mGraph;
@@ -44,7 +44,7 @@ class Quadtree
 
         uint8_t mLevel;
 
-        std::vector<std::pair<uint64_t, uint8_t>> mEdgeSubwayIDs;
+        std::vector<std::pair<Edge *, uint8_t>> mEdgeSubwayIDs;
 
         void initQuadTree();
 
@@ -57,7 +57,7 @@ class Quadtree
 struct ClosestEdges
 {
     double distance;
-    uint64_t edgeId;
+    Edge *edge;
     uint8_t subwayId;
 
     bool operator<(const ClosestEdges &other) const

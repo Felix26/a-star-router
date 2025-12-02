@@ -31,9 +31,8 @@ int main()
         // Check every edge bounding box
         for(Quadtree *subtree : quadtree.getAllSubtrees())
         {
-            for(const auto &[edgeId, subwayId] : subtree->getEdgeSubwayIDs())
+            for(const auto &[edge, subwayId] : subtree->getEdgeSubwayIDs())
             {
-                auto edge = graph.getEdge(edgeId);
                 if(edge == nullptr) continue;
 
                 const Box &box = edge->getBoundingBox(subwayId);
@@ -47,7 +46,7 @@ int main()
         std::cout << "Closest edges to point " << testPoint << ":\n";
         for(const auto &ce : closestEdges)
         {
-            std::cout << "Edge ID: " << (ce.edgeId % 0x00FFFFFFFFFFFFFF) << ", Subway ID: " << static_cast<int>(ce.subwayId) << ", Distance: " << ce.distance << " m\n";
+            std::cout << "Edge ID: " << (ce.edge->getId() % 0x00FFFFFFFFFFFFFF) << ", Subway ID: " << static_cast<int>(ce.subwayId) << ", Distance: " << ce.distance << " m\n";
         }
 
         assert(closestEdges.size() == 10);

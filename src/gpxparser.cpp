@@ -39,7 +39,7 @@ void GPXParser::fillEdgeIDs(const Quadtree &quadtree)
         auto closestEdges = quadtree.getClosestEdges(point);
         if(closestEdges[0].distance < 10)
         {
-            mEdgeIDs.emplace_back(closestEdges[0].edgeId);
+            mEdgeIDs.emplace_back(closestEdges[0].edge->getId());
             //std::cout << index << ": " << closestEdges[0].edgeId << std::endl;
         }
         else
