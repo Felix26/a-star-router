@@ -1,12 +1,12 @@
 #include "router.hpp"
 
-#include <unordered_dense.h>
+#include <ankerl/unordered_dense.h>
 
 #include "library.hpp"
 
 Router::Router(std::string osmFile)
 {
-    ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
+    ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> nodes;
     ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
     mGraph = std::make_unique<Graph>();
