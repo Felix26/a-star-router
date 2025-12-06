@@ -3,17 +3,23 @@
 #include "graph.hpp"
 #include "library.hpp"
 
-#include <arpa/inet.h>
+#ifdef _WIN32
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <arpa/inet.h>
+  #include <netinet/in.h>
+  #include <sys/socket.h>
+#endif
+
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <netinet/in.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -246,7 +252,11 @@ void RouterServer::run()
     }
 
     int opt = 1;
+    #ifdef _WIN32
+    if (setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt)) < 0)
+    #else
     if (setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+    #endif
     {
         ::close(serverFd);
         throw std::runtime_error("Kann Socketoption nicht setzen: " + std::string(std::strerror(errno)));

@@ -6,7 +6,7 @@
 #include <tuple>
 #include <vector>
 
-#include <unordered_dense.h>
+#include <ankerl/unordered_dense.h>
 
 #include "coordinates.hpp"
 #include "box.hpp"
@@ -34,10 +34,10 @@ namespace HelperFunctions
     std::string exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename);
 
     void readOSMFile(const std::string &filepath,
-                     ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
+                     ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes,
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 
     const Box createGraph(Graph &graph,
-                     ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> &nodes,
+                     ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes,
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 } // namespace HelperFunctions

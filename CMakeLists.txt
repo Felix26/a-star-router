@@ -6,18 +6,39 @@ project(
   LANGUAGES C CXX
 )
 
-
+# ------------------------------------------------------------------------------
+# Global C++ settings
+# ------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# ------------------------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------------------------
+
+# libxml2 (system dependency)
 find_package(LibXml2 REQUIRED)
 
-# pugixml einbinden
-add_subdirectory(external/pugixml-1.15)
+include(FetchContent)
 
-option(ROUTER_BUILD_TESTS "Tests mit CTest/GTest bauen" ON)
+# pugixml
+FetchContent_Declare(
+  pugixml
+  GIT_REPOSITORY https://github.com/zeux/pugixml.git
+  GIT_TAG v1.15
+)
+FetchContent_MakeAvailable(pugixml)
+
+# unordered_dense (header-only)
+FetchContent_Declare(
+  unordered_dense
+  GIT_REPOSITORY https://github.com/martinus/unordered_dense.git
+  GIT_TAG v4.8.1
+)
+FetchContent_MakeAvailable(unordered_dense)
 
 set(ROUTER_PROFILING_COMPILE_FLAGS
     -O2
@@ -33,6 +54,10 @@ set(ROUTER_PROFILING_LINK_FLAGS
 
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# ------------------------------------------------------------------------------
+# Core library
+# ------------------------------------------------------------------------------
 
 add_library(router_core STATIC
   src/library.cpp
@@ -53,31 +78,51 @@ target_compile_options(router_core PRIVATE
     $<$<CONFIG:RelWithDebInfo>:-fno-omit-frame-pointer>
 )
 
-
 target_include_directories(router_core
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/pugixml-1.15/src
 )
-target_compile_features(router_core PUBLIC cxx_std_17)
+
+target_compile_features(router_core
+  PUBLIC
+    cxx_std_17
+)
 
 target_link_libraries(router_core
   PUBLIC
     LibXml2::LibXml2
+    pugixml
+    unordered_dense::unordered_dense
 )
+
+if (WIN32)
+  target_link_libraries(router_core
+    PUBLIC
+      ws2_32
+  )
+endif()
+
+# ------------------------------------------------------------------------------
+# Application
+# ------------------------------------------------------------------------------
 
 add_executable(router_app
   src/main.cpp
 )
+
 target_link_libraries(router_app
   PRIVATE
     router_core
-    pugixml
 )
 
-if(ROUTER_BUILD_TESTS)
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+option(ROUTER_BUILD_TESTS "Build tests with CTest" ON)
+
+if (ROUTER_BUILD_TESTS)
   enable_testing()
 
   file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
@@ -89,17 +134,9 @@ if(ROUTER_BUILD_TESTS)
 
     add_executable(${test_name} ${test_src})
 
-    target_include_directories(${test_name}
-      PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/unordered_dense
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/pugixml-1.15/src
-    )
-
     target_link_libraries(${test_name}
       PRIVATE
         router_core
-        pugixml
     )
 
     target_compile_definitions(${test_name}

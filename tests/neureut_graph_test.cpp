@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <unordered_dense.h>
+#include <ankerl/unordered_dense.h>
 
 #include "graph.hpp"
 #include "library.hpp"
@@ -16,7 +16,7 @@ int main()
     try
     {
         Graph graph;
-        ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
+        ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> nodes;
         ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/neureut.osm";
