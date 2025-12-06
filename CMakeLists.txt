@@ -40,6 +40,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(unordered_dense)
 
+set(ROUTER_PROFILING_COMPILE_FLAGS
+    -O2
+    -g
+    -fno-omit-frame-pointer
+    #-fno-inline
+)
+
+set(ROUTER_PROFILING_LINK_FLAGS
+    -g
+    -fno-omit-frame-pointer
+)
+
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------------------------------------------------------------------------------
 # Core library
@@ -57,6 +71,11 @@ add_library(router_core STATIC
   src/gpxparser.cpp
   src/box.cpp
   src/quadtree.cpp
+  src/router.cpp
+)
+
+target_compile_options(router_core PRIVATE
+    $<$<CONFIG:RelWithDebInfo>:-fno-omit-frame-pointer>
 )
 
 target_include_directories(router_core

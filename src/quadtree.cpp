@@ -10,6 +10,7 @@
 Quadtree::Quadtree(const Graph &graph, const Box &boundary, uint8_t level)
     : mGraph(graph), mBoundary(boundary), mLevel(level)
 {
+    if(level == 0) initQuadTree();
 }
 
 void Quadtree::initQuadTree()
@@ -19,7 +20,7 @@ void Quadtree::initQuadTree()
         const auto &path = edge->getPath();
         for(size_t subWayId = 0; subWayId < path.size() - 1; subWayId++)
         {
-            insert(edgeId, subWayId);
+            insert(edge.get(), subWayId);
         }
     }
 }
@@ -29,19 +30,23 @@ const std::vector<Quadtree *> Quadtree::getAllSubtrees() const
     std::vector<Quadtree *> subtrees;
     subtrees.push_back(const_cast<Quadtree *>(this));
 
-    if (mNorthWest) {
+    if (mNorthWest)
+    {
         auto nwSubtrees = mNorthWest->getAllSubtrees();
         subtrees.insert(subtrees.end(), nwSubtrees.begin(), nwSubtrees.end());
     }
-    if (mNorthEast) {
+    if (mNorthEast)
+    {
         auto neSubtrees = mNorthEast->getAllSubtrees();
         subtrees.insert(subtrees.end(), neSubtrees.begin(), neSubtrees.end());
     }
-    if (mSouthWest) {
+    if (mSouthWest)
+    {
         auto swSubtrees = mSouthWest->getAllSubtrees();
         subtrees.insert(subtrees.end(), swSubtrees.begin(), swSubtrees.end());
     }
-    if (mSouthEast) {
+    if (mSouthEast)
+    {
         auto seSubtrees = mSouthEast->getAllSubtrees();
         subtrees.insert(subtrees.end(), seSubtrees.begin(), seSubtrees.end());
     }
@@ -49,9 +54,9 @@ const std::vector<Quadtree *> Quadtree::getAllSubtrees() const
     return subtrees;
 }
 
-void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
+void Quadtree::insert(Edge *edge, uint8_t subwayId)
 {
-    const Box edgeBox = mGraph.getEdge(edgeId)->getBoundingBox(subwayId);
+    const Box edgeBox = edge->getBoundingBox(subwayId);
 
     if (!mBoundary.contains(edgeBox))
     {
@@ -68,7 +73,7 @@ void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
     */
     if(mNorthWest == nullptr)
     {
-        mEdgeSubwayIDs.emplace_back(edgeId, subwayId);
+        mEdgeSubwayIDs.emplace_back(edge, subwayId);
 
         if(mEdgeSubwayIDs.size() > MAX_ITEMS)
         {
@@ -89,27 +94,27 @@ void Quadtree::insert(uint64_t edgeId, uint8_t subwayId)
     {
         if(mNorthWest->getBoundary().contains(edgeBox))
         {
-            mNorthWest->insert(edgeId, subwayId);
+            mNorthWest->insert(edge, subwayId);
             return;
         }
         if(mNorthEast->getBoundary().contains(edgeBox))
         {
-            mNorthEast->insert(edgeId, subwayId);
+            mNorthEast->insert(edge, subwayId);
             return;
         }
         if(mSouthWest->getBoundary().contains(edgeBox))
         {
-            mSouthWest->insert(edgeId, subwayId);
+            mSouthWest->insert(edge, subwayId);
             return;
         }
         if(mSouthEast->getBoundary().contains(edgeBox))
         {
-            mSouthEast->insert(edgeId, subwayId);
+            mSouthEast->insert(edge, subwayId);
             return;
         }
 
         // Passt in keines der Kinder, also hier behalten
-        mEdgeSubwayIDs.emplace_back(edgeId, subwayId);
+        mEdgeSubwayIDs.emplace_back(edge, subwayId);
     }
 }
 
@@ -123,7 +128,7 @@ std::vector<ClosestEdges> Quadtree::getClosestEdges(const Coordinates &point, ui
     std::vector<ClosestEdges> result;
     while(!closestEdges.empty())
     {
-        result.push_back(ClosestEdges{std::sqrt(closestEdges.top().distance), closestEdges.top().edgeId, closestEdges.top().subwayId});
+        result.push_back(ClosestEdges{std::sqrt(closestEdges.top().distance), closestEdges.top().edge, closestEdges.top().subwayId});
         closestEdges.pop();
     }
 
@@ -135,10 +140,8 @@ std::vector<ClosestEdges> Quadtree::getClosestEdges(const Coordinates &point, ui
 
 void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, std::priority_queue<ClosestEdges, std::vector<ClosestEdges>, std::less<ClosestEdges>> &closestEdges) const
 {
-    for(const auto &[edgeId, subwayId] : mEdgeSubwayIDs)
+    for(const auto &[edge, subwayId] : mEdgeSubwayIDs)
     {
-        auto edge = mGraph.getEdge(edgeId);
-
         // Early skip if bounding box distance is already larger than the farthest closest edge found
         if(edge->getBoundingBox(subwayId).getEstDistanceSquared(point) >= closestEdges.top().distance && closestEdges.size() >= resultCount)
         {
@@ -149,7 +152,7 @@ void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, s
         distance = distance * distance;
 
         if(distance >= closestEdges.top().distance && closestEdges.size() >= resultCount) continue;
-        closestEdges.push(ClosestEdges{distance, edgeId, subwayId});
+        closestEdges.push(ClosestEdges{distance, edge, subwayId});
         if(closestEdges.size() > resultCount) closestEdges.pop();
     }
 

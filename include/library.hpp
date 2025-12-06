@@ -9,6 +9,7 @@
 #include <ankerl/unordered_dense.h>
 
 #include "coordinates.hpp"
+#include "box.hpp"
 
 class Graph;
 class OsmNode;
@@ -36,7 +37,7 @@ namespace HelperFunctions
                      ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes,
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 
-    void createGraph(Graph &graph,
+    const Box createGraph(Graph &graph,
                      ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes,
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 } // namespace HelperFunctions

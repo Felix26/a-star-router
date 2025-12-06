@@ -30,7 +30,7 @@ class Graph
 
         const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> &getEdges() const { return mEdges; }
 
-        const std::shared_ptr<Edge> getEdge(uint64_t edgeId) const { return mEdges.at(edgeId); }
+        const Edge *getEdge(uint64_t edgeId) const { return mEdges.at(edgeId).get(); }
 
         std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
 

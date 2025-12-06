@@ -21,7 +21,6 @@ int main()
 
         Box boundary(Coordinates(49.73600, 7.949946), Coordinates(48.31047, 9.605534));
         Quadtree quadtree(graph, boundary);
-        quadtree.initQuadTree();
         
         GPXParser parser;
 
