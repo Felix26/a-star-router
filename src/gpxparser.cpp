@@ -44,7 +44,7 @@ void GPXParser::fillEdgeIDs(const Quadtree &quadtree)
         }
         else
         {
-            std::cout << index << ": not found. " << point << std::endl;
+            //std::cout << index << ": not found. " << point << std::endl;
         }
         index++;
     }

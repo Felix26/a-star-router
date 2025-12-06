@@ -15,7 +15,7 @@ int main()
         ankerl::unordered_dense::map<u_int64_t, std::shared_ptr<OsmNode>> nodes;
         ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
-        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/neureut.osm";
+        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/karlsruhe_roads_min.osm";
         HelperFunctions::readOSMFile(osmPath, nodes, ways);
         HelperFunctions::createGraph(graph, nodes, ways);
 
@@ -26,7 +26,7 @@ int main()
 
         parser.loadGPXFiles("/home/felixm/Desktop/Studienarbeit/Router/testdata/gpxdata");
 
-        //parser.fillEdgeIDs(quadtree);
+        parser.fillEdgeIDs(quadtree);
 
         std::cout << "Number of found edges: " << parser.getEdgeIDs().size() << std::endl;
     }

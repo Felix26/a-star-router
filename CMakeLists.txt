@@ -6,16 +6,6 @@ project(
   LANGUAGES C CXX
 )
 
-# Zusätzlicher Build-Type für Performance-Analyse
-set(CMAKE_CONFIGURATION_TYPES
-    "Debug;Release;RelWithDebInfo;Profile"
-    CACHE STRING "" FORCE
-)
-
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
-endif()
-
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -60,11 +50,7 @@ add_library(router_core STATIC
 )
 
 target_compile_options(router_core PRIVATE
-    $<$<CONFIG:Profile>:${ROUTER_PROFILING_COMPILE_FLAGS}>
-)
-
-target_link_options(router_core PRIVATE
-    $<$<CONFIG:Profile>:${ROUTER_PROFILING_LINK_FLAGS}>
+    $<$<CONFIG:RelWithDebInfo>:-fno-omit-frame-pointer>
 )
 
 
