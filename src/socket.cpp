@@ -245,9 +245,21 @@ void RouterServer::handleClient(int clientFd)
 
 void RouterServer::run()
 {
+    #ifdef _WIN32
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0)
+    {
+        throw std::runtime_error("WSAStartup ist fehlgeschlagen: " + std::to_string(result));
+    }
+    #endif
+
     int serverFd = ::socket(AF_INET, SOCK_STREAM, 0);
     if (serverFd < 0)
     {
+        #ifdef _WIN32
+        WSACleanup();
+        #endif
         throw std::runtime_error("Kann Socket nicht erzeugen: " + std::string(std::strerror(errno)));
     }
 
@@ -259,6 +271,9 @@ void RouterServer::run()
     #endif
     {
         ::close(serverFd);
+        #ifdef _WIN32
+        WSACleanup();
+        #endif
         throw std::runtime_error("Kann Socketoption nicht setzen: " + std::string(std::strerror(errno)));
     }
 
@@ -270,12 +285,18 @@ void RouterServer::run()
     if (bind(serverFd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) < 0)
     {
         ::close(serverFd);
+        #ifdef _WIN32
+        WSACleanup();
+        #endif
         throw std::runtime_error("Kann nicht an Port binden: " + std::string(std::strerror(errno)));
     }
 
     if (listen(serverFd, 3) < 0)
     {
         ::close(serverFd);
+        #ifdef _WIN32
+        WSACleanup();
+        #endif
         throw std::runtime_error("Kann nicht auf Verbindungen warten: " + std::string(std::strerror(errno)));
     }
 
@@ -303,6 +324,9 @@ void RouterServer::run()
     }
 
     ::close(serverFd);
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
 }
 
 }

@@ -37,7 +37,7 @@ int main()
             Coordinates testPoint = randomCoordinateGenerator();
 
             auto closestEdges = quadtree.getClosestEdges(testPoint, 3);
-            //td::cout << "Closest edges to point " << testPoint << ":\n";
+            //std::cout << "Closest edges to point " << testPoint << ":\n";
             //for(const auto &ce : closestEdges)
             //{
                 //std::cout << "Edge ID: " << (ce.edgeId % 0x00FFFFFFFFFFFFFF) << ", Subway ID: " << static_cast<int>(ce.subwayId) << ", Distance: " << ce.distance << " m\n";
@@ -50,6 +50,7 @@ int main()
         std::cout << "Points per second: " << (testCount / (duration.count() / 1000.0)) << " points/s\n";
 
         std::cout << "Graph has " << graph.getEdges().size() << " edges.\n";
+        std::cout << "Quadtree Box: " << quadtree.getBoundary().getTopLeft() << " to " << quadtree.getBoundary().getBottomRight() << std::endl;
     }
     catch (const std::exception &e)
     {
