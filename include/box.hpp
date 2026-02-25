@@ -28,6 +28,9 @@ class Box
         const Coordinates getLeftMiddle() const { return Coordinates((mMinLatitude + mMaxLatitude) / 2.0, mMinLongitude); }
         const Coordinates getRightMiddle() const { return Coordinates((mMinLatitude + mMaxLatitude) / 2.0, mMaxLongitude); }
 
+        const Coordinates getMinLatitudeLongitude() const { return Coordinates(mMinLatitude, mMinLongitude); }
+        const Coordinates getMaxLatitudeLongitude() const { return Coordinates(mMaxLatitude, mMaxLongitude); }
+
     private:
         double mMinLatitude;
         double mMinLongitude;

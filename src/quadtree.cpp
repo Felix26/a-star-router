@@ -128,7 +128,7 @@ std::vector<ClosestEdges> Quadtree::getClosestEdges(const Coordinates &point, ui
     std::vector<ClosestEdges> result;
     while(!closestEdges.empty())
     {
-        result.push_back(ClosestEdges{std::sqrt(closestEdges.top().distance), closestEdges.top().edge, closestEdges.top().subwayId});
+        result.push_back(ClosestEdges{closestEdges.top().distance, closestEdges.top().edge, closestEdges.top().subwayId});
         closestEdges.pop();
     }
 
@@ -143,13 +143,12 @@ void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, s
     for(const auto &[edge, subwayId] : mEdgeSubwayIDs)
     {
         // Early skip if bounding box distance is already larger than the farthest closest edge found
-        if(edge->getBoundingBox(subwayId).getEstDistanceSquared(point) >= closestEdges.top().distance && closestEdges.size() >= resultCount)
+        if(edge->getBoundingBox(subwayId).getDistance(point) >= closestEdges.top().distance && closestEdges.size() >= resultCount)
         {
             continue;
         }
 
         double distance = HelperFunctions::distancePointToSegment(point,edge->getPath()[subwayId],edge->getPath()[subwayId + 1]);
-        distance = distance * distance;
 
         if(distance >= closestEdges.top().distance && closestEdges.size() >= resultCount) continue;
         closestEdges.push(ClosestEdges{distance, edge, subwayId});
@@ -158,10 +157,10 @@ void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, s
 
     // Recurse into children
     std::array<std::pair<double, Quadtree *>, 4> children = {{
-        {(mNorthWest != nullptr) ? mNorthWest->getBoundary().getEstDistanceSquared(point) : std::numeric_limits<double>::max(), mNorthWest.get()},
-        {(mNorthEast != nullptr) ? mNorthEast->getBoundary().getEstDistanceSquared(point) : std::numeric_limits<double>::max(), mNorthEast.get()},
-        {(mSouthWest != nullptr) ? mSouthWest->getBoundary().getEstDistanceSquared(point) : std::numeric_limits<double>::max(), mSouthWest.get()},
-        {(mSouthEast != nullptr) ? mSouthEast->getBoundary().getEstDistanceSquared(point) : std::numeric_limits<double>::max(), mSouthEast.get()} }};
+        {(mNorthWest != nullptr) ? mNorthWest->getBoundary().getDistance(point) : std::numeric_limits<double>::max(), mNorthWest.get()},
+        {(mNorthEast != nullptr) ? mNorthEast->getBoundary().getDistance(point) : std::numeric_limits<double>::max(), mNorthEast.get()},
+        {(mSouthWest != nullptr) ? mSouthWest->getBoundary().getDistance(point) : std::numeric_limits<double>::max(), mSouthWest.get()},
+        {(mSouthEast != nullptr) ? mSouthEast->getBoundary().getDistance(point) : std::numeric_limits<double>::max(), mSouthEast.get()} }};
 
     std::sort(children.begin(), children.end(),
               [](const std::pair<double, Quadtree *> &a, const std::pair<double, Quadtree *> &b)
