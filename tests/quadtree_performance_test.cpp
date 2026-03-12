@@ -20,7 +20,7 @@ int main()
 
     try
     {
-        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/karlsruhe_roads_min.osm";
+        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/bw_min.osm";
         
         Router router(osmPath);
         Quadtree &quadtree = router.getQuadtree();

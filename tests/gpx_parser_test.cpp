@@ -26,9 +26,14 @@ int main()
 
         parser.loadGPXFiles("/home/felixm/Desktop/Studienarbeit/Router/testdata/gpxdata");
 
-        parser.fillEdgeIDs(quadtree);
+        for(const auto track : parser.getTracks())
+        {
+            //std::cout << std::put_time(track[0], "Time: %Y-%m-%d %H:%M:%S") << 
+        }
 
-        std::cout << "Number of found edges: " << parser.getEdgeIDs().size() << std::endl;
+        //parser.fillEdgeIDs(quadtree);
+
+        //std::cout << "Number of found edges: " << parser.getEdgeIDs().size() << std::endl;
     }
     catch (const std::exception &e)
     {
