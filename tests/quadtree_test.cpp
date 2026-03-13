@@ -1,13 +1,10 @@
 #include "gpxparser.hpp"
 
 #include <iostream>
-#include <ankerl/unordered_dense.h>
 #include <cassert>
 #include <cstdlib>
 
-#include "osmway.hpp"
-#include "osmnode.hpp"
-#include "graph.hpp"
+#include "router.hpp"
 #include "library.hpp"
 
 #include "quadtree.hpp"
@@ -32,18 +29,15 @@ int main()
     srand(0);
     try
     {
-        Graph graph;
-        ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> nodes;
-        ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
-
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/neureut.osm";
-        HelperFunctions::readOSMFile(osmPath, nodes, ways);
-        
+        Router router(osmPath);
 
-        Box boundary = HelperFunctions::createGraph(graph, nodes, ways);
-        Quadtree quadtree(graph, boundary);
+        Quadtree &quadtree = router.getQuadtree();
+        Graph &graph = router.getGraph();
 
-        std::cout << quadtree;
+        Box boundary = quadtree.getBoundary();
+
+        std::cout << quadtree << "\n";
 
         // Check every edge bounding box
         for(Quadtree *subtree : quadtree.getAllSubtrees())
@@ -74,7 +68,7 @@ int main()
         {
             Coordinates randomPoint = randomCoordinateGenerator(boundary);
             auto closestEdges = quadtree.getClosestEdges(randomPoint, 1);
-            auto closestEdgeNotQuadtree = graph.getEdgeSplit(randomPoint);
+            auto closestEdgeNotQuadtree = router.getEdgeSplit(randomPoint);
             Edge closestEdgeRef = *graph.getEdges().at(std::get<1>(closestEdgeNotQuadtree)).get();
 
             uint64_t closestEdgeIdQuadtree = closestEdges[0].edge->getId() & 0x00FFFFFFFFFFFFFF;

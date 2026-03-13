@@ -22,28 +22,14 @@ class Graph
 
         void printGraph();
 
-        std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId);
-
-        std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords);
-
         const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> &getNodes() const { return mNodes; }
 
         const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> &getEdges() const { return mEdges; }
 
         const Edge *getEdge(uint64_t edgeId) const { return mEdges.at(edgeId).get(); }
-
-        std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
-
-        std::tuple<uint64_t, uint8_t> getClosestSegment(Coordinates coords) const;
-
-        // Returns the closest point on the segment to the given edge and the index of the segment
-        Coordinates getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex) const;
-
     private:
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> mNodes;
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> mEdges;
-
-        static double heuristic(const Node &a, const Node &b);
 
         std::vector<uint64_t> mSplitItemIds;
         uint8_t mSplitItemCount = 0;

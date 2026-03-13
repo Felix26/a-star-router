@@ -2,6 +2,7 @@
 
 #include "graph.hpp"
 #include "library.hpp"
+#include "router.hpp"
 
 #ifdef _WIN32
   #include <winsock2.h>
@@ -26,8 +27,8 @@
 namespace socketcpp
 {
 
-RouterServer::RouterServer(Graph &graph, uint16_t port)
-    : graph_(graph), port_(port), pathCounter_(0)
+RouterServer::RouterServer(Router &router, uint16_t port)
+    : mRouter(router), mPort(port), mPathCounter(0)
 {
 }
 
@@ -88,7 +89,7 @@ bool RouterServer::receiveLine(int fd, std::string &line) const
 
 void RouterServer::handleClient(int clientFd)
 {
-    auto &nodelist = graph_.getNodes();
+    auto &nodelist = mRouter.getGraph().getNodes();
     sendAll(clientFd, "Verbunden mit Router-Server. "
                       "Geben Sie \"<startId> <zielId>\", \"-c <startLat>,<startLon> <zielLat>,<zielLon>\", "
                       "leer fuer Zufall oder \"exit\" ein.\n");
@@ -209,11 +210,11 @@ void RouterServer::handleClient(int clientFd)
         {
             Coordinates startCoords(startLat, startLon);
             Coordinates goalCoords(goalLat, goalLon);
-            path = graph_.aStar(startCoords, goalCoords);
+            path = mRouter.aStar(startCoords, goalCoords);
         }
         else
         {
-            path = graph_.aStar(startId, goalId);
+            path = mRouter.aStar(startId, goalId);
         }
 
         if (path.empty())
@@ -222,8 +223,8 @@ void RouterServer::handleClient(int clientFd)
             continue;
         }
 
-        const std::string fileName = "astar_path_" + std::to_string(pathCounter_++) + ".geojson";
-        pathCounter_ %= 10;
+        const std::string fileName = "astar_path_" + std::to_string(mPathCounter++) + ".geojson";
+        mPathCounter %= 10;
         std::string filepath = HelperFunctions::exportPathToGeoJSON(path, fileName);
 
         std::ostringstream response;
@@ -280,7 +281,7 @@ void RouterServer::run()
     sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port_);
+    address.sin_port = htons(mPort);
 
     if (bind(serverFd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) < 0)
     {
@@ -300,7 +301,7 @@ void RouterServer::run()
         throw std::runtime_error("Kann nicht auf Verbindungen warten: " + std::string(std::strerror(errno)));
     }
 
-    std::cout << "Router-Server lauscht auf Port " << port_ << ".\n";
+    std::cout << "Router-Server lauscht auf Port " << mPort << ".\n";
 
     while (true)
     {

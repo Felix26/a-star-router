@@ -4,7 +4,7 @@
     {
       "type": "Feature",
       "geometry": {
-        "type": "MultiPoint",
+        "type": "LineString",
         "coordinates": [
           [8.4107607, 48.9680497],
           [8.4107265, 48.9681023],

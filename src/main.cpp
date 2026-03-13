@@ -13,6 +13,7 @@
 #include "osmway.hpp"
 #include "graph.hpp"
 #include "socket.hpp"
+#include "router.hpp"
 
 namespace
 {
@@ -41,15 +42,11 @@ int main(int argc, char *argv[])
         port = static_cast<uint16_t>(parsedPort);
     }
 
-    Graph graph;
+    std::unique_ptr<Router> router;
 
     try
     {
-        ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> nodes;
-        ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
-
-        HelperFunctions::readOSMFile(argv[1], nodes, ways);
-        HelperFunctions::createGraph(graph, nodes, ways);
+        router = std::make_unique<Router>(argv[1]);
     }
     catch (const std::exception &e)
     {
@@ -59,7 +56,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        socketcpp::RouterServer server(graph, port);
+        socketcpp::RouterServer server(*router, port);
         server.run();
     }
     catch (const std::exception &e)

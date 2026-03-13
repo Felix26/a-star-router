@@ -4,14 +4,14 @@
 #include <cstddef>
 #include <string>
 
-class Graph;
+class Router;
 
 namespace socketcpp
 {
 class RouterServer
 {
 public:
-    RouterServer(Graph &graph, uint16_t port);
+    RouterServer(Router &router, uint16_t port);
 
     void run();
 
@@ -20,8 +20,8 @@ private:
     bool receiveLine(int fd, std::string &line) const;
     void handleClient(int clientFd);
 
-    Graph &graph_;
-    uint16_t port_;
-    size_t pathCounter_;
+    Router &mRouter;
+    uint16_t mPort;
+    size_t mPathCounter;
 };
 }
