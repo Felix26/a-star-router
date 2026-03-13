@@ -6,12 +6,13 @@
 #include <cstdint>
 #include <chrono>
 #include <format>
+#include <unordered_map>
 
 #include "coordinates.hpp"
 #include "quadtree.hpp"
 
-typedef std::tuple<std::chrono::system_clock::time_point, std::vector<Coordinates>> Track;
-typedef std::vector<Track> Tracks;
+// Track: Filename and vector of coordinates
+typedef std::unordered_map<std::string, std::vector<Coordinates>> Tracks;
 
 class GPXParser
 {
@@ -20,15 +21,15 @@ class GPXParser
 
         void loadGPXFiles(const std::string &directory);
 
-        void fillEdgeIDs(const Quadtree &quadtree);
+        std::vector<std::tuple<uint64_t, Coordinates>> fillEdgeIDs(const Quadtree &quadtree, const std::vector<Coordinates> &trackPoints);
 
-        const std::vector<uint64_t>& getEdgeIDs() { return mEdgeIDs; }
+        const std::vector<std::tuple<uint64_t, double>>& getEdgeIDs() { return mEdgeIDs; }
 
         const Tracks& getTracks() { return mTracks; }
     private:
-        // Each GPX track is stored as a tuple of (timestamp, track points)
+        // Each GPX track is stored as a tuple of (filename, track points)
         Tracks mTracks;
-        std::vector<uint64_t> mEdgeIDs;
+        std::vector<std::tuple<uint64_t, double>> mEdgeIDs;
 
         void parseGPXFile(const std::filesystem::directory_entry &file);
 };

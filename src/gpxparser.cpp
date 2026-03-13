@@ -6,6 +6,7 @@
 
 #include "library.hpp"
 #include "quadtree.hpp"
+#include "graph.hpp"
 
 GPXParser::GPXParser()
 {
@@ -29,26 +30,27 @@ void GPXParser::loadGPXFiles(const std::string &directory)
     }
 }
 
-void GPXParser::fillEdgeIDs(const Quadtree &quadtree)
+std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(const Quadtree &quadtree, const std::vector<Coordinates> &trackPoints)
 {
-    uint64_t index = 0;
-    for(const auto track : mTracks)
+    std::vector<std::tuple<uint64_t, Coordinates>> projections;
+
+    for(Coordinates point : trackPoints)
     {
-        for(Coordinates point : std::get<1>(track))
+        auto closestEdges = quadtree.getClosestEdges(point, 1);
+        for(const auto &edge : closestEdges)
         {
-            auto closestEdges = quadtree.getClosestEdges(point);
-            if(closestEdges[0].distance < 10)
+            if(edge.distance < 50)
             {
-                mEdgeIDs.emplace_back(closestEdges[0].edge->getId());
-                //std::cout << index << ": " << closestEdges[0].edgeId << std::endl;
+                mEdgeIDs.emplace_back(edge.edge->getId(), edge.distance);
+
+                Coordinates segmentStart = edge.edge->getPath()[edge.subwayId];
+                Coordinates segmentEnd = edge.edge->getPath()[edge.subwayId + 1];
+
+                projections.emplace_back(edge.edge->getId(), HelperFunctions::getProjectionOnSegment(point, segmentStart, segmentEnd));
             }
-            else
-            {
-                //std::cout << index << ": not found. " << point << std::endl;
-            }
-            index++;
         }
     }
+    return projections;
 }
 
 void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
@@ -57,22 +59,6 @@ void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
     
     if(doc.load_file(file.path().string().c_str()))
     {
-        const std::string timestampString = doc.select_node("/gpx/metadata/time").node().child_value();
-
-        std::chrono::system_clock::time_point timestamp; 
-
-        if (!timestampString.empty())
-        {
-            std::istringstream ss{timestampString};
-            
-            // Den Stream direkt in time_point parsen
-            if (!(ss >> std::chrono::parse("%FT%TZ", timestamp)))
-            {
-                // Wenn das failbit gesetzt wurde (Parsen fehlgeschlagen), auf Epoch zurücksetzen
-                timestamp = std::chrono::system_clock::time_point{};
-            }
-        }
-
         std::vector<Coordinates> trackPoints;
         for(const auto &trackpoint : doc.select_nodes("/gpx/trk/trkseg/trkpt"))
         {
@@ -80,6 +66,6 @@ void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
             trackPoints.emplace_back(point);
         }
 
-        mTracks.emplace_back(timestamp, trackPoints);
+        mTracks.insert({file.path().filename().string(), trackPoints});
     }
 }

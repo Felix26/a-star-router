@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <ankerl/unordered_dense.h>
+#include <format>
 #include "osmway.hpp"
 #include "osmnode.hpp"
 #include "graph.hpp"
@@ -24,16 +25,24 @@ int main()
         
         GPXParser parser;
 
-        parser.loadGPXFiles("/home/felixm/Desktop/Studienarbeit/Router/testdata/gpxdata");
+        parser.loadGPXFiles(std::string(PROJECT_SOURCE_DIR) + "/testdata/gpxdata");
 
-        for(const auto track : parser.getTracks())
+        for(const auto &track : parser.getTracks())
         {
-            //std::cout << std::put_time(track[0], "Time: %Y-%m-%d %H:%M:%S") << 
+            std::cout << std::format("Track: {}, Number of points: {}\n", std::get<0>(track), std::get<1>(track).size());
         }
 
-        //parser.fillEdgeIDs(quadtree);
+        auto &trackPoints = parser.getTracks().at("230305-30.gpx");
 
-        //std::cout << "Number of found edges: " << parser.getEdgeIDs().size() << std::endl;
+        const auto &projections = parser.fillEdgeIDs(quadtree, trackPoints);
+
+        std::cout << "Closest edges to track points:\n";
+        for(const auto &edgeId : parser.getEdgeIDs())
+        {
+            std::cout << std::format("Edge ID: {}, Distance: {}\n", std::get<0>(edgeId), std::get<1>(edgeId));
+        }
+
+        std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/projections.geojson") << std::endl;
     }
     catch (const std::exception &e)
     {

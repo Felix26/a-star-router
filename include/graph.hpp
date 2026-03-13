@@ -34,16 +34,16 @@ class Graph
 
         std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
 
+        std::tuple<uint64_t, uint8_t> getClosestSegment(Coordinates coords) const;
+
+        // Returns the closest point on the segment to the given edge and the index of the segment
+        Coordinates getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex) const;
+
     private:
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> mNodes;
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> mEdges;
 
         static double heuristic(const Node &a, const Node &b);
-
-        std::tuple<uint64_t, uint8_t> getClosestSegment(Coordinates coords) const;
-
-        // Returns the closest point on the segment to the given edge and the index of the segment
-        Coordinates getClosestPointOnEdge(Coordinates coords, uint64_t edgeId, uint8_t segmentIndex) const;
 
         std::vector<uint64_t> mSplitItemIds;
         uint8_t mSplitItemCount = 0;
