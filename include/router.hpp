@@ -6,6 +6,8 @@
 #include "graph.hpp"
 #include "quadtree.hpp"
 
+#define NO_EDGE_SNAP_PENALTY 10000
+
 class Router
 {
     public:
@@ -14,9 +16,9 @@ class Router
         Graph &getGraph() { return *mGraph; }
         Quadtree &getQuadtree() { return *mQuadtree; }
 
-        std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId);
+        std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads = 0);
 
-        std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords);
+        std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads = 0);
 
         std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
 

@@ -14,6 +14,7 @@ class Edge
         Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path);
 
         double calculateWayLength() const { return mWaylength; }
+        void setWayLength(double waylength) { mWaylength = waylength; }
 
         const uint64_t getId() const { return mId; }
 
@@ -26,7 +27,7 @@ class Edge
 
     private:
         const uint64_t mId;
-        const double mWaylength;
+        double mWaylength;
         const std::array<std::weak_ptr<Node>, 2> mNodes;
 
         const std::vector<Coordinates> mPath;

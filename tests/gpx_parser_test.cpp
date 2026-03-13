@@ -1,27 +1,19 @@
 #include "gpxparser.hpp"
 
 #include <iostream>
-#include <ankerl/unordered_dense.h>
 #include <format>
-#include "osmway.hpp"
-#include "osmnode.hpp"
-#include "graph.hpp"
+
+#include "router.hpp"
 #include "library.hpp"
 
 int main()
 {
     try
     {
-        Graph graph;
-        ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> nodes;
-        ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
-
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/karlsruhe_roads_min.osm";
-        HelperFunctions::readOSMFile(osmPath, nodes, ways);
-        HelperFunctions::createGraph(graph, nodes, ways);
 
         Box boundary(Coordinates(49.73600, 7.949946), Coordinates(48.31047, 9.605534));
-        Quadtree quadtree(graph, boundary);
+        Router router(osmPath);
         
         GPXParser parser;
 
@@ -34,7 +26,7 @@ int main()
 
         auto &trackPoints = parser.getTracks().at("230305-30.gpx");
 
-        const auto &projections = parser.fillEdgeIDs(quadtree, trackPoints);
+        const auto &projections = parser.fillEdgeIDs(router, trackPoints);
 
         std::cout << "Closest edges to track points:\n";
         for(const auto &edgeId : parser.getEdgeIDs())

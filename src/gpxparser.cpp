@@ -30,26 +30,31 @@ void GPXParser::loadGPXFiles(const std::string &directory)
     }
 }
 
-std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(const Quadtree &quadtree, const std::vector<Coordinates> &trackPoints)
+std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints)
 {
     std::vector<std::tuple<uint64_t, Coordinates>> projections;
 
     for(Coordinates point : trackPoints)
     {
-        auto closestEdges = quadtree.getClosestEdges(point, 1);
+        auto closestEdges = router.getQuadtree().getClosestEdges(point, 3);
         for(const auto &edge : closestEdges)
         {
             if(edge.distance < 50)
             {
                 mEdgeIDs.emplace_back(edge.edge->getId(), edge.distance);
 
-                Coordinates segmentStart = edge.edge->getPath()[edge.subwayId];
-                Coordinates segmentEnd = edge.edge->getPath()[edge.subwayId + 1];
-
-                projections.emplace_back(edge.edge->getId(), HelperFunctions::getProjectionOnSegment(point, segmentStart, segmentEnd));
+                edge.edge->setWayLength((edge.edge->calculateWayLength() + edge.distance * 5) / NO_EDGE_SNAP_PENALTY);
             }
         }
     }
+
+    // calculate path every 1000 track points
+    for(uint32_t i = 0; i < trackPoints.size(); i += 1000)
+    {
+        auto path = router.aStar(trackPoints[i], trackPoints[std::min(i + 999, static_cast<uint32_t>(trackPoints.size() - 1))], 1);
+        projections.insert(projections.end(), path.begin(), path.end());
+    }
+
     return projections;
 }
 

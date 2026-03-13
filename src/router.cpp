@@ -18,7 +18,7 @@ Router::Router(std::string osmFile)
     mQuadtree = std::make_unique<Quadtree>(*mGraph, boundary);
 }
 
-std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, uint64_t goalId)
+std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads)
 {
     // Alle Knoten zurücksetzen (für wiederholte Nutzung)
     for (auto &[id, node] : mGraph->getNodes())
@@ -35,7 +35,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
     std::shared_ptr<Node> goal = mGraph->getNodes().at(goalId);
 
     start->g = 0.0;
-    start->f = Router::heuristic(*start, *goal);
+    start->f = Router::heuristic(*start, *goal) / (snapToRoads * (NO_EDGE_SNAP_PENALTY - 1) + 1);
 
     using PQItem = std::pair<double, uint64_t>; // (f, nodeId)
     std::priority_queue<PQItem, std::vector<PQItem>, std::greater<PQItem>> openSet;
@@ -79,7 +79,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
                 neighbor->parentEdge = edge.get();
                 neighbor->parentEdgeReversed = (toNode->getId() == currentId);
                 neighbor->g = tentativeG;
-                neighbor->f = tentativeG + Router::heuristic(*neighbor, *goal);
+                neighbor->f = tentativeG + Router::heuristic(*neighbor, *goal) / (snapToRoads * (NO_EDGE_SNAP_PENALTY - 1) + 1);
                 openSet.emplace(neighbor->f, neighbor->getId());
             }
         }
@@ -128,7 +128,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
     return path;
 }
 
-std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCoords, Coordinates goalCoords)
+std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads)
 {
     auto [closestStartPoint, closestStartEdgeId, startSegment] = getEdgeSplit(startCoords);
     uint64_t newNodeIdStart = mGraph->addSplit(closestStartPoint, closestStartEdgeId, startSegment);
@@ -136,7 +136,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCo
     auto [closestEndPoint, closestEndEdgeId, endSegment] = getEdgeSplit(goalCoords);
     uint64_t newNodeIdEnd = mGraph->addSplit(closestEndPoint, closestEndEdgeId, endSegment);
 
-    std::vector<std::tuple<uint64_t, Coordinates>> path = aStar(newNodeIdStart, newNodeIdEnd);
+    std::vector<std::tuple<uint64_t, Coordinates>> path = aStar(newNodeIdStart, newNodeIdEnd, snapToRoads);
 
     mGraph->removeSplitItems();
 

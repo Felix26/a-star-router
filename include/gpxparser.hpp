@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "coordinates.hpp"
-#include "quadtree.hpp"
+#include "router.hpp"
 
 // Track: Filename and vector of coordinates
 typedef std::unordered_map<std::string, std::vector<Coordinates>> Tracks;
@@ -21,7 +21,7 @@ class GPXParser
 
         void loadGPXFiles(const std::string &directory);
 
-        std::vector<std::tuple<uint64_t, Coordinates>> fillEdgeIDs(const Quadtree &quadtree, const std::vector<Coordinates> &trackPoints);
+        std::vector<std::tuple<uint64_t, Coordinates>> fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints);
 
         const std::vector<std::tuple<uint64_t, double>>& getEdgeIDs() { return mEdgeIDs; }
 
