@@ -13,8 +13,10 @@ class Edge
     public:
         Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path);
 
-        double calculateWayLength() const { return mWaylength; }
+        double getWayLength() const { return mWaylength; }
         void setWayLength(double waylength) { mWaylength = waylength; }
+
+        double calculateWayLength() const;
 
         const uint64_t getId() const { return mId; }
 
@@ -24,6 +26,8 @@ class Edge
         const std::vector<Coordinates> &getPath() const { return mPath; }
 
         const Box getBoundingBox(uint8_t subWayId) const { return Box(mPath[subWayId], mPath[subWayId + 1]); }
+
+        uint16_t snapPointCounter = 0;
 
     private:
         const uint64_t mId;

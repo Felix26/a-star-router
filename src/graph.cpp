@@ -115,6 +115,7 @@ void Graph::removeSplitItems()
         }
     }
     mSplitItemIds.clear();
+    mSplitItemCount = 0;
 }
 
 void Graph::printGraph()
@@ -123,7 +124,7 @@ void Graph::printGraph()
 
     for(const auto &edge : mEdges)
     {
-        std::cout << "Edge ID: " << edge.first << ", Length: " << edge.second->calculateWayLength() << " mm\n";
+        std::cout << "Edge ID: " << edge.first << ", Length: " << edge.second->getWayLength() << " mm\n";
     }
 
     std::cout << "\n\n\nNODES:\n";

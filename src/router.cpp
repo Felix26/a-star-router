@@ -71,7 +71,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
             if (neighbor->visited)
                 continue;
 
-            double tentativeG = current->g + edge->calculateWayLength();
+            double tentativeG = current->g + edge->getWayLength();
 
             if (tentativeG < neighbor->g)
             {

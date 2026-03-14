@@ -21,7 +21,7 @@ class Quadtree
 
         const Box &getBoundary() const { return mBoundary; }
 
-        std::vector<ClosestEdges> getClosestEdges(const Coordinates &point, uint8_t resultCount = 1) const;
+        std::vector<ClosestEdges> getClosestEdges(const Coordinates &point, uint8_t resultCount = 1, bool multipleSegments = true) const;
         
         friend std::ostream& operator<<(std::ostream& os, const Quadtree& qt);
 
@@ -51,7 +51,7 @@ class Quadtree
         bool subdivide();
 
         void findClosestEdges(const Coordinates &point, uint8_t resultCount,
-                              std::priority_queue<ClosestEdges, std::vector<ClosestEdges>, std::less<ClosestEdges>> &closestEdges) const;
+                              std::vector<ClosestEdges> &closestEdges, bool multipleSegments) const;
 };
 
 struct ClosestEdges

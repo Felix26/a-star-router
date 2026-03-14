@@ -118,41 +118,46 @@ void Quadtree::insert(Edge *edge, uint8_t subwayId)
     }
 }
 
-std::vector<ClosestEdges> Quadtree::getClosestEdges(const Coordinates &point, uint8_t resultCount) const
+std::vector<ClosestEdges> Quadtree::getClosestEdges(const Coordinates &point, uint8_t resultCount, bool multipleSegments) const
 {
-    std::priority_queue<ClosestEdges, std::vector<ClosestEdges>, std::less<ClosestEdges>> closestEdges;
-    closestEdges.push(ClosestEdges{std::numeric_limits<double>::max(), 0, 0});
+    std::vector<ClosestEdges> closestEdges;
+    closestEdges.emplace_back(ClosestEdges{std::numeric_limits<double>::max(), 0, 0});
 
-    findClosestEdges(point, resultCount, closestEdges);
+    findClosestEdges(point, resultCount, closestEdges, multipleSegments);
 
-    std::vector<ClosestEdges> result;
-    while(!closestEdges.empty())
-    {
-        result.push_back(ClosestEdges{closestEdges.top().distance, closestEdges.top().edge, closestEdges.top().subwayId});
-        closestEdges.pop();
-    }
-
-    // The priority queue returns elements in descending order (largest distance first),
-    // so we reverse the result to get ascending order (smallest distance first).
-    std::reverse(result.begin(), result.end());
-    return result;
+    
+    return closestEdges;
 }
 
-void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, std::priority_queue<ClosestEdges, std::vector<ClosestEdges>, std::less<ClosestEdges>> &closestEdges) const
+void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, std::vector<ClosestEdges> &closestEdges, bool multipleSegments) const
 {
     for(const auto &[edge, subwayId] : mEdgeSubwayIDs)
     {
         // Early skip if bounding box distance is already larger than the farthest closest edge found
-        if(edge->getBoundingBox(subwayId).getDistance(point) >= closestEdges.top().distance && closestEdges.size() >= resultCount)
+        if(edge->getBoundingBox(subwayId).getDistance(point) >= closestEdges.back().distance && closestEdges.size() >= resultCount)
         {
             continue;
         }
 
         double distance = HelperFunctions::distancePointToSegment(point,edge->getPath()[subwayId],edge->getPath()[subwayId + 1]);
 
-        if(distance >= closestEdges.top().distance && closestEdges.size() >= resultCount) continue;
-        closestEdges.push(ClosestEdges{distance, edge, subwayId});
-        if(closestEdges.size() > resultCount) closestEdges.pop();
+        if(distance >= closestEdges.back().distance && closestEdges.size() >= resultCount) continue;
+
+        if(!multipleSegments)
+        {
+            auto it = std::find_if(closestEdges.begin(), closestEdges.end(), [&](const ClosestEdges& e) { return e.edge == edge; });
+
+            if(it != closestEdges.end())
+            {
+                if(distance >= it->distance) continue;
+                closestEdges.erase(it);
+            }
+        }
+
+        auto insertPos = std::lower_bound(closestEdges.begin(), closestEdges.end(), distance, [](const ClosestEdges& e, double d) { return e.distance < d; });
+
+        closestEdges.emplace(insertPos, distance, edge, subwayId);
+        if(closestEdges.size() > resultCount) closestEdges.pop_back();
     }
 
     // Recurse into children
@@ -170,12 +175,12 @@ void Quadtree::findClosestEdges(const Coordinates &point, uint8_t resultCount, s
 
     for(auto child : children)
     {
-        if(child.second == nullptr || child.first >= closestEdges.top().distance)
+        if(child.second == nullptr || child.first >= closestEdges.back().distance)
         {
             break;
         }
 
-        child.second->findClosestEdges(point, resultCount, closestEdges);
+        child.second->findClosestEdges(point, resultCount, closestEdges, multipleSegments);
     }
 }
 

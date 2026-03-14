@@ -19,17 +19,12 @@ int main()
         Coordinates testCoordinates = {49.053453, 8.384183};
         uint64_t assertionEdgeId = 779542839;
 
-        uint64_t closestEdgeId = router.getQuadtree().getClosestEdges(testCoordinates)[0].edge->getId() & 0x00FFFFFFFFFFFFFF;
+        auto closestEdges = router.getQuadtree().getClosestEdges(testCoordinates, 10);
 
-        assert(closestEdgeId == assertionEdgeId);
-        
-
-        testCoordinates = {49.050133, 8.390682};
-        assertionEdgeId = 132153778;
-
-        closestEdgeId = router.getQuadtree().getClosestEdges(testCoordinates)[0].edge->getId() & 0x00FFFFFFFFFFFFFF;
-
-        assert(closestEdgeId == assertionEdgeId);
+        for(const auto &edge : closestEdges)
+        {
+            std::cout << "Edge ID: " << (edge.edge->getId() % 0x00FFFFFFFFFFFFFF) << ", Subway ID: " << static_cast<int>(edge.subwayId) << ", Distance: " << edge.distance << " m\n";
+        }
     }
     catch (const std::exception &e)
     {

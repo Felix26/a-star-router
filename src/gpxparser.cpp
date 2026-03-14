@@ -36,14 +36,37 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
 
     for(Coordinates point : trackPoints)
     {
-        auto closestEdges = router.getQuadtree().getClosestEdges(point, 3);
+        auto closestEdges = router.getQuadtree().getClosestEdges(point, 3, false);
         for(const auto &edge : closestEdges)
         {
             if(edge.distance < 50)
             {
                 mEdgeIDs.emplace_back(edge.edge->getId(), edge.distance);
 
-                edge.edge->setWayLength((edge.edge->calculateWayLength() + edge.distance * 5) / NO_EDGE_SNAP_PENALTY);
+                double oldWayLength = edge.edge->calculateWayLength();
+                double newWayLength = (oldWayLength * (edge.distance + 1)) / NO_EDGE_SNAP_PENALTY;
+
+                if(edge.edge->snapPointCounter == 0)
+                {
+                    edge.edge->setWayLength(newWayLength);
+                    edge.edge->snapPointCounter++;
+                }
+                else
+                {
+                    edge.edge->setWayLength((edge.edge->getWayLength() * edge.edge->snapPointCounter + newWayLength) / (edge.edge->snapPointCounter + 1));
+                    edge.edge->snapPointCounter++;
+                }
+
+
+
+                if(edge.edge->getId() == 199071365)
+                {
+                    std::cout << edge.edge->getWayLength() << std::endl;
+                }
+                if(edge.edge->getId() == 4551331)
+                {
+                    std::cout << "Not Taken: " << edge.edge->getWayLength() << std::endl;
+                }
             }
         }
     }

@@ -53,7 +53,7 @@ int main()
 
         Coordinates testPoint(49.053357, 8.384253);
 
-        auto closestEdges = quadtree.getClosestEdges(testPoint, 10);
+        auto closestEdges = quadtree.getClosestEdges(testPoint, 10, false);
         std::cout << "Closest edges to point " << testPoint << ":\n";
         for(const auto &ce : closestEdges)
         {

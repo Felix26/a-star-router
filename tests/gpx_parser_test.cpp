@@ -24,14 +24,14 @@ int main()
             std::cout << std::format("Track: {}, Number of points: {}\n", std::get<0>(track), std::get<1>(track).size());
         }
 
-        auto &trackPoints = parser.getTracks().at("230305-30.gpx");
+        auto &trackPoints = parser.getTracks().at("240713-50.gpx");
 
         const auto &projections = parser.fillEdgeIDs(router, trackPoints);
 
         std::cout << "Closest edges to track points:\n";
         for(const auto &edgeId : parser.getEdgeIDs())
         {
-            std::cout << std::format("Edge ID: {}, Distance: {}\n", std::get<0>(edgeId), std::get<1>(edgeId));
+            //std::cout << std::format("Edge ID: {}, Distance: {}\n", std::get<0>(edgeId), std::get<1>(edgeId));
         }
 
         std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/projections.geojson") << std::endl;
