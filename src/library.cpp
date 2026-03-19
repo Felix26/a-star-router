@@ -161,7 +161,15 @@ namespace HelperFunctions
                     continue;
                 }
 
-                nodeIt->second->isVisited = true;
+                if(nodeIt->second->isVisited == true)
+                {
+                    nodeIt->second->isEdge = true;
+                }
+                else
+                {
+                    nodeIt->second->isVisited = true;
+                }
+                
                 way->addNode(nodeIt->second);
             }
 

@@ -32,4 +32,11 @@ class GPXParser
         std::vector<std::tuple<uint64_t, double>> mEdgeIDs;
 
         void parseGPXFile(const std::filesystem::directory_entry &file);
+        void checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates);
+        void resetRoutingPoints();
+
+        Coordinates bestPointCoords{0, 0};
+        double bestPointMetric = 0;
+        uint16_t bestPointIndex = 0;
+        uint16_t lastPointIndex = 0;
 };

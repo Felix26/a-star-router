@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <memory>
 #include <tuple>
+#include <algorithm>
 
 #include "library.hpp"
 #include "edge.hpp"
@@ -70,9 +71,10 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     // Create two new edges by splitting the original polyline at the segment index
     std::vector<Coordinates> path1(path.begin(), path.begin() + segmentIndex + 1);
     path1.push_back(closestCoords);
-    double waylength1 = HelperFunctions::calculatePathLength(path1);
+    double waylength1percentage = HelperFunctions::calculatePathLength(path1) / edge->calculateWayLength();
+    double waylength1 = waylength1percentage * edge->getWayLength();
 
-    uint64_t edgeId1 = edgeId | ((uint64_t)++mSplitItemCount << 62); // New sub-way ID
+    uint64_t edgeId1 = edgeId | ((uint64_t)++mSplitItemCount << 60); // New sub-way ID
     auto edge1 = std::make_shared<Edge>(edgeId1, waylength1, edge->from(), newNode, path1);
     mEdges.emplace(edgeId1, edge1);
     mSplitItemIds.push_back(edgeId1);
@@ -84,9 +86,10 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     std::vector<Coordinates> path2;
     path2.push_back(closestCoords);
     path2.insert(path2.end(), path.begin() + segmentIndex + 1, path.end());
-    double waylength2 = HelperFunctions::calculatePathLength(path2);
+    double waylength2percentage = 1 - waylength1percentage;
+    double waylength2 = waylength2percentage * edge->getWayLength();
 
-    uint64_t edgeId2 = edgeId | ((uint64_t)++mSplitItemCount << 62); // New sub-way ID
+    uint64_t edgeId2 = edgeId | ((uint64_t)++mSplitItemCount << 60); // New sub-way ID
     auto edge2 = std::make_shared<Edge>(edgeId2, waylength2, newNode, edge->to(), path2);
     mEdges.emplace(edgeId2, edge2);
     mSplitItemIds.push_back(edgeId2);
@@ -101,19 +104,38 @@ void Graph::removeSplitItems()
 {
     for (const auto &id : mSplitItemIds)
     {
-        // Remove edges
-        if (mEdges.find(id) != mEdges.end())
+        // 1. Edges aufräumen
+        auto edgeIt = mEdges.find(id);
+        if (edgeIt != mEdges.end())
         {
-            mEdges.erase(id);
+            auto edge = edgeIt->second; // Den shared_ptr kurz sichern
+
+            // Kante aus Startknotens (from) entfernen
+            if (edge->from()) {
+                auto &fromEdges = edge->from()->edges;
+                fromEdges.erase(std::remove(fromEdges.begin(), fromEdges.end(), edge), fromEdges.end());
+            }
+
+            // Kante aus Zielknotens (to) entfernen
+            if (edge->to()) {
+                auto &toEdges = edge->to()->edges;
+                toEdges.erase(std::remove(toEdges.begin(), toEdges.end(), edge), toEdges.end());
+            }
+
+            mEdges.erase(edgeIt);
             continue;
         }
 
-        // Remove nodes
-        if (mNodes.find(id) != mNodes.end())
+        // 2. Nodes aufräumen
+        auto nodeIt = mNodes.find(id);
+        if (nodeIt != mNodes.end())
         {
-            mNodes.erase(id);
+            nodeIt->second->edges.clear(); 
+            
+            mNodes.erase(nodeIt);
         }
     }
+    
     mSplitItemIds.clear();
     mSplitItemCount = 0;
 }

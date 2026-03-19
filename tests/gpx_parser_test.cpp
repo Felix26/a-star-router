@@ -10,10 +10,11 @@ int main()
 {
     try
     {
-        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/karlsruhe_roads_min.osm";
+        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
 
-        Box boundary(Coordinates(49.73600, 7.949946), Coordinates(48.31047, 9.605534));
         Router router(osmPath);
+
+        auto node = router.getGraph().getNodes().find(1668593983);
         
         GPXParser parser;
 
@@ -24,7 +25,7 @@ int main()
             std::cout << std::format("Track: {}, Number of points: {}\n", std::get<0>(track), std::get<1>(track).size());
         }
 
-        auto &trackPoints = parser.getTracks().at("240713-50.gpx");
+        auto &trackPoints = parser.getTracks().at("241106-13.gpx");
 
         const auto &projections = parser.fillEdgeIDs(router, trackPoints);
 

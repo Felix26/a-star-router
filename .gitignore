@@ -37,3 +37,4 @@
 
 # GPX-Dateien
 *.gpx
+*.geojson

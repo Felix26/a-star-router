@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <pugixml.hpp>
+#include <algorithm>
 
 #include "library.hpp"
 #include "quadtree.hpp"
@@ -33,13 +34,17 @@ void GPXParser::loadGPXFiles(const std::string &directory)
 std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints)
 {
     std::vector<std::tuple<uint64_t, Coordinates>> projections;
+    std::vector<Coordinates> routingPoints;
+    resetRoutingPoints();
 
-    for(Coordinates point : trackPoints)
+    routingPoints.emplace_back(trackPoints[0]);
+    for(uint16_t i = 1; i < trackPoints.size() - 1; i++)
     {
-        auto closestEdges = router.getQuadtree().getClosestEdges(point, 3, false);
+        auto closestEdges = router.getQuadtree().getClosestEdges(trackPoints[i], 3, false);
+        checkRoutingTrackPoints(closestEdges, routingPoints, i, trackPoints[i]);
         for(const auto &edge : closestEdges)
         {
-            if(edge.distance < 50)
+            if(edge.distance < 10000)
             {
                 mEdgeIDs.emplace_back(edge.edge->getId(), edge.distance);
 
@@ -56,26 +61,18 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
                     edge.edge->setWayLength((edge.edge->getWayLength() * edge.edge->snapPointCounter + newWayLength) / (edge.edge->snapPointCounter + 1));
                     edge.edge->snapPointCounter++;
                 }
-
-
-
-                if(edge.edge->getId() == 199071365)
-                {
-                    std::cout << edge.edge->getWayLength() << std::endl;
-                }
-                if(edge.edge->getId() == 4551331)
-                {
-                    std::cout << "Not Taken: " << edge.edge->getWayLength() << std::endl;
-                }
             }
         }
     }
+    routingPoints.emplace_back(trackPoints[trackPoints.size() - 1]);
 
-    // calculate path every 1000 track points
-    for(uint32_t i = 0; i < trackPoints.size(); i += 1000)
+    for(uint32_t i = 0; i < routingPoints.size() - 1; i++)
     {
-        auto path = router.aStar(trackPoints[i], trackPoints[std::min(i + 999, static_cast<uint32_t>(trackPoints.size() - 1))], 1);
+        auto path = router.aStar(routingPoints[i], routingPoints[i + 1], 1);
+        std::cout << routingPoints[i] << std::endl;
         projections.insert(projections.end(), path.begin(), path.end());
+
+        HelperFunctions::exportPathToGeoJSON(path, "/home/felixm/Desktop/Studienarbeit/Router/testdata/projections" + std::to_string(i) + ".geojson");
     }
 
     return projections;
@@ -96,4 +93,32 @@ void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
 
         mTracks.insert({file.path().filename().string(), trackPoints});
     }
+}
+
+void GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates)
+{
+    if((pointIndex - lastPointIndex) < 50) return;
+
+    double metric = 1 - edges[0].distance / std::max(edges[1].distance, 0.001);
+
+    if(metric > bestPointMetric)
+    {
+        bestPointMetric = metric;
+        bestPointCoords = coordinates;
+        bestPointIndex = pointIndex;
+    }
+
+    if((pointIndex - lastPointIndex) > 250)
+    {
+        routingTrackPoints.emplace_back(bestPointCoords);
+        lastPointIndex = bestPointIndex;
+        bestPointMetric = 0;
+    }
+}
+
+void GPXParser::resetRoutingPoints()
+{
+    bestPointMetric = 0;
+    bestPointIndex = 0;
+    lastPointIndex = 0;
 }
