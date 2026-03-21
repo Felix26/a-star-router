@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <filesystem>
 
 #include <ankerl/unordered_dense.h>
 
@@ -31,7 +32,7 @@ namespace HelperFunctions
 
     Coordinates getProjectionOnSegment(const Coordinates &point, const Coordinates &segStart, const Coordinates &segEnd);
 
-    std::string exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename);
+    std::filesystem::path exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::filesystem::path &filename);
 
     void readOSMFile(const std::string &filepath,
                      ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes,

@@ -11,7 +11,7 @@
 class Router
 {
     public:
-        Router(std::string osmFile);
+        Router(const std::string &osmFile);
 
         Graph &getGraph() { return *mGraph; }
         Quadtree &getQuadtree() { return *mQuadtree; }

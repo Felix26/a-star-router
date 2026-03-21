@@ -42,11 +42,12 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
     {
         auto closestEdges = router.getQuadtree().getClosestEdges(trackPoints[i], 3, false);
         checkRoutingTrackPoints(closestEdges, routingPoints, i, trackPoints[i]);
+        closestEdges[0].edge->bestSnapPointCounter++;
         for(const auto &edge : closestEdges)
         {
             if(edge.distance < 20)
             {
-                mEdgeIDs.emplace_back(edge.edge->getId(), edge.distance);
+                mEdges.insert(edge.edge);
 
                 double oldWayLength = edge.edge->calculateWayLength();
                 double newWayLength = (oldWayLength * (edge.distance + 1)) / NO_EDGE_SNAP_PENALTY;
@@ -66,13 +67,24 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
     }
     routingPoints.emplace_back(trackPoints[trackPoints.size() - 1]);
 
+    double expectedMetersPerPoint = 3;
+
+    for(const auto &edge : mEdges)
+    {
+        double oldWayLength = edge->calculateWayLength();
+        double snapPenaltyFactor = std::max(1.0, oldWayLength / (std::max<double>(edge->bestSnapPointCounter, 0.01) * expectedMetersPerPoint));
+        if(oldWayLength < 10 * expectedMetersPerPoint)
+        {
+            continue;
+        }
+        edge->setWayLength(edge->getWayLength() * snapPenaltyFactor);
+    }
+
     for(uint32_t i = 0; i < routingPoints.size() - 1; i++)
     {
         auto path = router.aStar(routingPoints[i], routingPoints[i + 1], 1);
         std::cout << routingPoints[i] << std::endl;
         projections.insert(projections.end(), path.begin(), path.end());
-
-        HelperFunctions::exportPathToGeoJSON(path, "C:/Users/Felix/Desktop/router/a-star-router/testdata/projections" + std::to_string(i) + ".geojson");
     }
 
     return projections;

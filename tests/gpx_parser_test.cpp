@@ -2,12 +2,23 @@
 
 #include <iostream>
 #include <format>
+#include <csignal>
 
 #include "router.hpp"
 #include "library.hpp"
 
+void signal_handler(int signal) {
+    if (signal == SIGSEGV) std::cerr << "CRASH: Segmentierungsfehler (Speicherzugriff!)\n";
+    else if (signal == SIGFPE) std::cerr << "CRASH: Arithmetischer Fehler!\n";
+    else if (signal == SIGILL) std::cerr << "CRASH: Ungueltige Instruktion!\n";
+    else std::cerr << "CRASH: Signal " << signal << " empfangen.\n";
+    exit(signal);
+}
+
 int main()
 {
+    std::signal(SIGSEGV, signal_handler);
+    std::signal(SIGILL, signal_handler);
     try
     {
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
@@ -25,17 +36,13 @@ int main()
             std::cout << std::format("Track: {}, Number of points: {}\n", std::get<0>(track), std::get<1>(track).size());
         }
 
-        auto &trackPoints = parser.getTracks().at("240713-50.gpx");
+        std::string trackName = "230305-30.gpx";
+
+        auto &trackPoints = parser.getTracks().at(trackName);
 
         const auto &projections = parser.fillEdgeIDs(router, trackPoints);
 
-        std::cout << "Closest edges to track points:\n";
-        for(const auto &edgeId : parser.getEdgeIDs())
-        {
-            //std::cout << std::format("Edge ID: {}, Distance: {}\n", std::get<0>(edgeId), std::get<1>(edgeId));
-        }
-
-        std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/projections.geojson") << std::endl;
+        std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/" + trackName + "_matched.geojson") << std::endl;
 
         // Eingabe per std::cin: Koordinaten, Ausgabe: Nächstgelegene Kante, Kantengewicht, Kantenlänge, Bonusfaktor
         while(0)
@@ -55,7 +62,7 @@ int main()
                 double length = edge->calculateWayLength();
                 double bonusFactor = length / weight;
 
-                std::cout << std::format("Edge ID: {} ({}), Weight: {}, Length: {}, Bonus Factor: {}\n", edge->getId(), edge->getId() & 0x00FFFFFFFFFFFFFF, weight, length, bonusFactor);
+                std::cout << std::format("Edge ID: {} ({}), Weight: {}, Length: {}, Bonus Factor: {}, Snap Counter: {}, Best Snap Counter: {}\n", edge->getId(), edge->getId() & 0x00FFFFFFFFFFFFFF, weight, length, bonusFactor, edge->snapPointCounter, edge->bestSnapPointCounter);
             }
             catch(const std::exception &e)
             {
