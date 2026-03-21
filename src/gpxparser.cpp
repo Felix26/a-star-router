@@ -44,7 +44,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
         checkRoutingTrackPoints(closestEdges, routingPoints, i, trackPoints[i]);
         for(const auto &edge : closestEdges)
         {
-            if(edge.distance < 10000)
+            if(edge.distance < 20)
             {
                 mEdgeIDs.emplace_back(edge.edge->getId(), edge.distance);
 
@@ -72,7 +72,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
         std::cout << routingPoints[i] << std::endl;
         projections.insert(projections.end(), path.begin(), path.end());
 
-        HelperFunctions::exportPathToGeoJSON(path, "/home/felixm/Desktop/Studienarbeit/Router/testdata/projections" + std::to_string(i) + ".geojson");
+        HelperFunctions::exportPathToGeoJSON(path, "C:/Users/Felix/Desktop/router/a-star-router/testdata/projections" + std::to_string(i) + ".geojson");
     }
 
     return projections;
@@ -101,6 +101,9 @@ void GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, 
 
     double metric = 1 - edges[0].distance / std::max(edges[1].distance, 0.001);
 
+    // If the second closest edge is very close, we reduce the metric to avoid snapping to wrong edges in dense areas
+    metric *=  std::min(1.0, edges[1].distance / 20);
+
     if(metric > bestPointMetric)
     {
         bestPointMetric = metric;
@@ -108,8 +111,9 @@ void GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, 
         bestPointIndex = pointIndex;
     }
 
-    if((pointIndex - lastPointIndex) > 250)
+    if((pointIndex - lastPointIndex) > 250 && bestPointMetric > 0.95)
     {
+        std::cout << "Added routing point: " << bestPointCoords << " at index: " << bestPointIndex << " with metric: " << bestPointMetric << std::endl;
         routingTrackPoints.emplace_back(bestPointCoords);
         lastPointIndex = bestPointIndex;
         bestPointMetric = 0;

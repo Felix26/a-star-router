@@ -27,6 +27,8 @@ class Graph
         const ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> &getEdges() const { return mEdges; }
 
         const Edge *getEdge(uint64_t edgeId) const { return mEdges.at(edgeId).get(); }
+
+        const std::vector<uint64_t> &getSplitItemIds() const { return mSplitItemIds; }
     private:
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Node>> mNodes;
         ankerl::unordered_dense::map<uint64_t, std::shared_ptr<Edge>> mEdges;

@@ -8,6 +8,8 @@ class Coordinates
         Coordinates(double latitude, double longitude)
             : mLatitude(latitude), mLongitude(longitude) {}
 
+        explicit Coordinates(const std::string &coordString);   
+
         double getLatitude() const { return mLatitude; }
         double getLongitude() const { return mLongitude; }
 

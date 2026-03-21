@@ -164,23 +164,34 @@ std::tuple<Coordinates, uint64_t, uint8_t> Router::getEdgeSplit(Coordinates coor
 
 std::tuple<uint64_t, uint8_t> Router::getClosestSegment(Coordinates coords) const
 {
-    double minDistance = std::numeric_limits<double>::infinity();
-    uint64_t closestEdgeId = 0;
-    uint8_t segmentIndex;
+    auto closestEdges = mQuadtree->getClosestEdges(coords);
 
-    Edge *closestEdge = mQuadtree->getClosestEdges(coords).front().edge;
-
-    const auto &path = closestEdge->getPath();
-    for (size_t i = 0; i < path.size() - 1; ++i)
+    for(uint64_t id : mGraph->getSplitItemIds())
     {
-        double distance = HelperFunctions::distancePointToSegment(coords, path[i], path[i + 1]);
-        if (distance < minDistance)
+
+        if((id & 0x00FFFFFFFFFFFFFF) == (closestEdges[0].edge->getId() & 0x00FFFFFFFFFFFFFF))
         {
-            minDistance = distance;
-            closestEdgeId = closestEdge->getId();
-            segmentIndex = i;
+            double minDistance = std::numeric_limits<double>::infinity();
+            auto &path = mGraph->getEdge(id)->getPath();
+            uint8_t segmentIndex = 0;
+            for (size_t i = 0; i < path.size() - 1; ++i)
+            {
+                double distance = HelperFunctions::distancePointToSegment(coords, path[i], path[i + 1]);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    segmentIndex = i;
+                }
+            }
+
+            // If the closest edge is a split item and the distance is approximately the same as the original edge, return the split item
+            if(std::abs(minDistance - closestEdges[0].distance) < 1e-4)
+            {
+                return std::tuple(id, segmentIndex);
+            }
         }
     }
 
-    return std::tuple(closestEdgeId, segmentIndex);
+    // If the closest edge is not a split item, return the original edge and segment index
+    return std::tuple(closestEdges[0].edge->getId(), closestEdges[0].subwayId);
 }
