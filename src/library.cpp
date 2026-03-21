@@ -279,7 +279,7 @@ namespace HelperFunctions
         return Coordinates(projLat / DEG_TO_RAD, projLon / DEG_TO_RAD);
     }
 
-    std::string exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::string &filename)
+    std::filesystem::path exportPathToGeoJSON(const std::vector<std::tuple<uint64_t, Coordinates>> &path, const std::filesystem::path &filename)
     {
         std::ofstream file(filename);
         if (!file.is_open())

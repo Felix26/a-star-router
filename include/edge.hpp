@@ -28,6 +28,7 @@ class Edge
         const Box getBoundingBox(uint8_t subWayId) const { return Box(mPath[subWayId], mPath[subWayId + 1]); }
 
         uint16_t snapPointCounter = 0;
+        uint16_t bestSnapPointCounter = 0;
 
     private:
         const uint64_t mId;

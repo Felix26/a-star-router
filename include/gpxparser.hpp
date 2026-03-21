@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <chrono>
 #include <format>
-#include <unordered_map>
+#include <unordered_set>
 
 #include "coordinates.hpp"
 #include "router.hpp"
@@ -23,13 +23,13 @@ class GPXParser
 
         std::vector<std::tuple<uint64_t, Coordinates>> fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints);
 
-        const std::vector<std::tuple<uint64_t, double>>& getEdgeIDs() { return mEdgeIDs; }
+        std::unordered_set<Edge *> getEdges() { return mEdges; }
 
         const Tracks& getTracks() { return mTracks; }
     private:
         // Each GPX track is stored as a tuple of (filename, track points)
         Tracks mTracks;
-        std::vector<std::tuple<uint64_t, double>> mEdgeIDs;
+        std::unordered_set<Edge *> mEdges;
 
         void parseGPXFile(const std::filesystem::directory_entry &file);
         void checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates);

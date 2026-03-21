@@ -86,7 +86,7 @@ target_include_directories(router_core
 
 target_compile_features(router_core
   PUBLIC
-    cxx_std_17
+    cxx_std_20
 )
 
 target_link_libraries(router_core
