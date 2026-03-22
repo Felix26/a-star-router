@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
             {
                 Coordinates coords(input);
                 const Edge *edge = router.getQuadtree().getClosestEdges(coords)[0].edge;
-                double weight = edge->getWayLength();;
+                double weight = edge->getWeight();;
                 double length = edge->calculateWayLength();
                 double bonusFactor = length / weight;
 

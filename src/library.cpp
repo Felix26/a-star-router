@@ -408,4 +408,9 @@ namespace HelperFunctions
 
         return Box(Coordinates(minLat, minLon), Coordinates(maxLat, maxLon));
     }
+
+    double logisticFunction(double x, double lowerBound, double upperBound, double steepness, double maxGrowthX)
+    {
+        return (upperBound - lowerBound) / (1 + std::exp(- steepness * (x - maxGrowthX))) + lowerBound;
+    }
 } // namespace HelperFunctions

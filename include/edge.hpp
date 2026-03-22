@@ -13,8 +13,8 @@ class Edge
     public:
         Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path);
 
-        double getWayLength() const { return mWaylength; }
-        void setWayLength(double waylength) { mWaylength = waylength; }
+        double getWeight() const { return mWaylength; }
+        void setWeight(double waylength) { mWaylength = waylength; }
 
         double calculateWayLength() const;
 

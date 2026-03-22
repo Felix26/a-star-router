@@ -41,4 +41,6 @@ namespace HelperFunctions
     const Box createGraph(Graph &graph,
                      ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes,
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
+
+    double logisticFunction(double x, double lowerBound = 0, double upperBound = 1, double steepness = 1, double maxGrowthX = 0);
 } // namespace HelperFunctions

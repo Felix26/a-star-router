@@ -11,6 +11,9 @@
 #include "coordinates.hpp"
 #include "router.hpp"
 
+#define MIN_ROUTING_LENGTH 50
+#define MAX_ROUTING_LENGTH 250
+
 // Track: Filename and vector of coordinates
 typedef std::unordered_map<std::string, std::vector<Coordinates>> Tracks;
 

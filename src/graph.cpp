@@ -72,7 +72,7 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     std::vector<Coordinates> path1(path.begin(), path.begin() + segmentIndex + 1);
     path1.push_back(closestCoords);
     double waylength1percentage = HelperFunctions::calculatePathLength(path1) / edge->calculateWayLength();
-    double waylength1 = waylength1percentage * edge->getWayLength();
+    double waylength1 = waylength1percentage * edge->getWeight();
 
     uint64_t edgeId1 = edgeId | ((uint64_t)++mSplitItemCount << 60); // New sub-way ID
     auto edge1 = std::make_shared<Edge>(edgeId1, waylength1, edge->from(), newNode, path1);
@@ -87,7 +87,7 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     path2.push_back(closestCoords);
     path2.insert(path2.end(), path.begin() + segmentIndex + 1, path.end());
     double waylength2percentage = 1 - waylength1percentage;
-    double waylength2 = waylength2percentage * edge->getWayLength();
+    double waylength2 = waylength2percentage * edge->getWeight();
 
     uint64_t edgeId2 = edgeId | ((uint64_t)++mSplitItemCount << 60); // New sub-way ID
     auto edge2 = std::make_shared<Edge>(edgeId2, waylength2, newNode, edge->to(), path2);
@@ -146,7 +146,7 @@ void Graph::printGraph()
 
     for(const auto &edge : mEdges)
     {
-        std::cout << "Edge ID: " << edge.first << ", Length: " << edge.second->getWayLength() << " mm\n";
+        std::cout << "Edge ID: " << edge.first << ", Length: " << edge.second->getWeight() << " mm\n";
     }
 
     std::cout << "\n\n\nNODES:\n";

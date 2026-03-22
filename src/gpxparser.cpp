@@ -49,19 +49,11 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
             {
                 mEdges.insert(edge.edge);
 
-                double oldWayLength = edge.edge->calculateWayLength();
-                double newWayLength = (oldWayLength * (edge.distance + 1)) / NO_EDGE_SNAP_PENALTY;
-
-                if(edge.edge->snapPointCounter == 0)
-                {
-                    edge.edge->setWayLength(newWayLength);
-                    edge.edge->snapPointCounter++;
-                }
-                else
-                {
-                    edge.edge->setWayLength((edge.edge->getWayLength() * edge.edge->snapPointCounter + newWayLength) / (edge.edge->snapPointCounter + 1));
-                    edge.edge->snapPointCounter++;
-                }
+                double pathLength = edge.edge->calculateWayLength();
+                double newWeight = (pathLength * (edge.distance + 1)) / NO_EDGE_SNAP_PENALTY;
+                
+                edge.edge->setWeight((edge.edge->getWeight() * edge.edge->snapPointCounter + newWeight) / (edge.edge->snapPointCounter + 1));
+                edge.edge->snapPointCounter++;
             }
         }
 
@@ -79,7 +71,9 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
                 reset();
             }
 
-            i = bestPointIndex;
+            // MIN_ROUTING_LENGTH points can be skipped, but only to the current index (so all points will be checked at least once)
+            // Rechecking points can lead to better routing points (otherwise all points from bestPointindex + MIN_ROUTING_LENGTH to i would be skipped without checking for routing points)
+            i = std::min<uint16_t>(i, bestPointIndex + MIN_ROUTING_LENGTH);
         }
     }
 
@@ -98,13 +92,12 @@ void GPXParser::calculateSnapPenalties()
 
     for (const auto &edge : mEdges)
     {
-        double oldWayLength = edge->calculateWayLength();
-        double snapPenaltyFactor = std::max(1.0, oldWayLength / (std::max<double>(edge->bestSnapPointCounter, 1) * expectedMetersPerPoint));
-        if (oldWayLength < 10 * expectedMetersPerPoint)
-        {
-            continue;
-        }
-        edge->setWayLength(edge->getWayLength() * snapPenaltyFactor);
+        double pathLength = edge->calculateWayLength();
+        double snapPenaltyWeight = HelperFunctions::logisticFunction(pathLength, 0, 1, 0.15, 7 * expectedMetersPerPoint);
+
+        double snapPenaltyFactor = std::max(1.0, pathLength / (std::max<double>(edge->bestSnapPointCounter, 1) * expectedMetersPerPoint));
+        double weigtedSnapPenaltyFactor = snapPenaltyFactor * snapPenaltyWeight + (1 - snapPenaltyWeight);
+        edge->setWeight(edge->getWeight() * weigtedSnapPenaltyFactor);
     }
 }
 
@@ -135,7 +128,7 @@ void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
 
 bool GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates)
 {
-    if((pointIndex - lastPointIndex) < 50) return false;
+    if((pointIndex - lastPointIndex) < MIN_ROUTING_LENGTH) return false;
 
     double metric = 1 - edges[0].distance / std::max(edges[1].distance, 0.001);
 
@@ -149,7 +142,7 @@ bool GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, 
         bestPointIndex = pointIndex;
     }
 
-    if((pointIndex - lastPointIndex) > 250 && bestPointMetric > 0.95)
+    if((pointIndex - lastPointIndex) > MAX_ROUTING_LENGTH && bestPointMetric > 0.95)
     {
         std::cout << "Added routing point: " << bestPointCoords << " at index: " << bestPointIndex << " with metric: " << bestPointMetric << std::endl;
         routingTrackPoints.emplace_back(bestPointCoords);
@@ -173,7 +166,7 @@ void GPXParser::reset()
 {
     for(const auto &edge : mEdges)
     {
-        edge->setWayLength(edge->calculateWayLength());
+        edge->setWeight(edge->calculateWayLength());
         edge->snapPointCounter = 0;
         edge->bestSnapPointCounter = 0;
     }
