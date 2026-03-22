@@ -6,7 +6,7 @@
 #include "graph.hpp"
 #include "quadtree.hpp"
 
-#define NO_EDGE_SNAP_PENALTY 10000
+#define NO_EDGE_SNAP_PENALTY 1000
 
 class Router
 {

@@ -15,12 +15,16 @@ void signal_handler(int signal) {
     exit(signal);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     std::signal(SIGSEGV, signal_handler);
     std::signal(SIGILL, signal_handler);
     try
     {
+        std::string trackName = "230305-30.gpx";
+
+        if(argc > 1) trackName = argv[1];
+
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
 
         Router router(osmPath);
@@ -36,8 +40,6 @@ int main()
             std::cout << std::format("Track: {}, Number of points: {}\n", std::get<0>(track), std::get<1>(track).size());
         }
 
-        std::string trackName = "230305-30.gpx";
-
         auto &trackPoints = parser.getTracks().at(trackName);
 
         const auto &projections = parser.fillEdgeIDs(router, trackPoints);
@@ -45,7 +47,7 @@ int main()
         std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/" + trackName + "_matched.geojson") << std::endl;
 
         // Eingabe per std::cin: Koordinaten, Ausgabe: Nächstgelegene Kante, Kantengewicht, Kantenlänge, Bonusfaktor
-        while(0)
+        while(1)
         {
             std::cout << "Enter Coordinates lat, lon to find the closest edge and to get its weight, length and bonus factor (or 'exit' to quit): ";
             std::string input;
