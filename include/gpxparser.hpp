@@ -23,6 +23,9 @@ class GPXParser
 
         std::vector<std::tuple<uint64_t, Coordinates>> fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints);
 
+        void calculateSnapPenalties();
+        bool doRouting(const Coordinates &start, const Coordinates &end, Router &router, std::vector<std::tuple<uint64_t, Coordinates>> &pathContainer) const;
+
         std::unordered_set<Edge *> getEdges() { return mEdges; }
 
         const Tracks& getTracks() { return mTracks; }
@@ -32,8 +35,10 @@ class GPXParser
         std::unordered_set<Edge *> mEdges;
 
         void parseGPXFile(const std::filesystem::directory_entry &file);
-        void checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates);
+        bool checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates);
         void resetRoutingPoints();
+        void reset();
+        
 
         Coordinates bestPointCoords{0, 0};
         double bestPointMetric = 0;

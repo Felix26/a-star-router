@@ -41,8 +41,8 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
     for(uint16_t i = 1; i < trackPoints.size() - 1; i++)
     {
         auto closestEdges = router.getQuadtree().getClosestEdges(trackPoints[i], 3, false);
-        checkRoutingTrackPoints(closestEdges, routingPoints, i, trackPoints[i]);
         closestEdges[0].edge->bestSnapPointCounter++;
+
         for(const auto &edge : closestEdges)
         {
             if(edge.distance < 20)
@@ -64,32 +64,56 @@ std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &ro
                 }
             }
         }
+
+        if(checkRoutingTrackPoints(closestEdges, routingPoints, i, trackPoints[i]))
+        {
+            calculateSnapPenalties();
+            bool success = doRouting(routingPoints[routingPoints.size() - 2], routingPoints[routingPoints.size() - 1], router, projections);
+            if(!success)
+            {
+                std::cerr << "Routing failed between points: " << routingPoints[routingPoints.size() - 2] << " and " << routingPoints[routingPoints.size() - 1] << std::endl;
+                routingPoints.pop_back();
+            }
+            else
+            {
+                reset();
+            }
+
+            i = bestPointIndex;
+        }
     }
+
     routingPoints.emplace_back(trackPoints[trackPoints.size() - 1]);
 
+    calculateSnapPenalties();
+    doRouting(routingPoints[routingPoints.size() - 2], routingPoints[routingPoints.size() - 1], router, projections);
+    reset();
+
+    return projections;
+}
+
+void GPXParser::calculateSnapPenalties()
+{
     double expectedMetersPerPoint = 3;
 
-    for(const auto &edge : mEdges)
+    for (const auto &edge : mEdges)
     {
         double oldWayLength = edge->calculateWayLength();
         double snapPenaltyFactor = std::max(1.0, oldWayLength / (std::max<double>(edge->bestSnapPointCounter, 1) * expectedMetersPerPoint));
-        if(oldWayLength < 10 * expectedMetersPerPoint)
+        if (oldWayLength < 10 * expectedMetersPerPoint)
         {
             continue;
         }
         edge->setWayLength(edge->getWayLength() * snapPenaltyFactor);
     }
+}
 
-    for(uint32_t i = 0; i < routingPoints.size() - 1; i++)
-    {
-        auto path = router.aStar(routingPoints[i], routingPoints[i + 1], 1);
-        std::cout << routingPoints[i] << std::endl;
-        projections.insert(projections.end(), path.begin(), path.end());
+bool GPXParser::doRouting(const Coordinates &start, const Coordinates &end, Router &router, std::vector<std::tuple<uint64_t, Coordinates>> &pathContainer) const
+{
+    auto path = router.aStar(start, end, 1);
+    pathContainer.insert(pathContainer.end(), path.begin(), path.end());
 
-        HelperFunctions::exportPathToGeoJSON(path, "C:/Users/Felix/Desktop/router/a-star-router/testdata/routing_point_" + std::to_string(i) + ".geojson");
-    }
-
-    return projections;
+    return !path.empty();
 }
 
 void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
@@ -109,9 +133,9 @@ void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
     }
 }
 
-void GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates)
+bool GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, std::vector<Coordinates> &routingTrackPoints, uint16_t pointIndex, const Coordinates &coordinates)
 {
-    if((pointIndex - lastPointIndex) < 50) return;
+    if((pointIndex - lastPointIndex) < 50) return false;
 
     double metric = 1 - edges[0].distance / std::max(edges[1].distance, 0.001);
 
@@ -131,7 +155,11 @@ void GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, 
         routingTrackPoints.emplace_back(bestPointCoords);
         lastPointIndex = bestPointIndex;
         bestPointMetric = 0;
+
+        return true;
     }
+
+    return false;
 }
 
 void GPXParser::resetRoutingPoints()
@@ -139,4 +167,16 @@ void GPXParser::resetRoutingPoints()
     bestPointMetric = 0;
     bestPointIndex = 0;
     lastPointIndex = 0;
+}
+
+void GPXParser::reset()
+{
+    for(const auto &edge : mEdges)
+    {
+        edge->setWayLength(edge->calculateWayLength());
+        edge->snapPointCounter = 0;
+        edge->bestSnapPointCounter = 0;
+    }
+
+    mEdges.clear();
 }

@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
         std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/" + trackName + "_matched.geojson") << std::endl;
 
         // Eingabe per std::cin: Koordinaten, Ausgabe: Nächstgelegene Kante, Kantengewicht, Kantenlänge, Bonusfaktor
-        while(1)
+        while(0)
         {
             std::cout << "Enter Coordinates lat, lon to find the closest edge and to get its weight, length and bonus factor (or 'exit' to quit): ";
             std::string input;
