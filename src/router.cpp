@@ -20,6 +20,87 @@ Router::Router(const std::string &osmFile)
 
 std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads)
 {
+    aStarRouting(startId, goalId, snapToRoads);
+
+    // Pfad rekonstruieren
+    std::vector<std::tuple<uint64_t, Coordinates>> path;
+    for (uint64_t nodeId = goalId;; nodeId = mGraph->getNodes().at(nodeId)->parent)
+    {
+        if (nodeId == 0)
+        {
+            std::cerr << "No path found from " << startId << " to " << goalId << "\n";
+            return std::vector<std::tuple<uint64_t, Coordinates>>(); // Kein Pfad gefunden
+        }
+        const Node &currentNode = *mGraph->getNodes().at(nodeId);
+        path.emplace_back(nodeId, currentNode.getCoordinates());
+
+        if (nodeId == startId)
+            break;
+
+        const Edge *edge = currentNode.parentEdge;
+        if (edge == nullptr)
+            continue;
+
+        const auto &edgePath = edge->getPath();
+        if (edgePath.size() <= 2)
+            continue;
+
+        if (!currentNode.parentEdgeReversed)
+        {
+            for (size_t pathIndex = edgePath.size() - 2; pathIndex > 0; --pathIndex)
+            {
+                path.emplace_back(0, edgePath.at(pathIndex));
+            }
+        }
+        else
+        {
+            for (size_t pathIndex = 1; pathIndex < edgePath.size() - 1; ++pathIndex)
+            {
+                path.emplace_back(0, edgePath.at(pathIndex));
+            }
+        }
+    }
+
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
+std::vector<uint64_t> Router::aStarEdges(uint64_t startId, uint64_t goalId)
+{
+    aStarRouting(startId, goalId);
+
+    // Pfad rekonstruieren
+    std::vector<uint64_t> path;
+
+    for (uint64_t nodeId = goalId;; nodeId = mGraph->getNodes().at(nodeId)->parent)
+    {
+        if (nodeId == 0)
+        {
+            std::cerr << "No path found from " << startId << " to " << goalId << "\n";
+            return {};
+        }
+
+        if (nodeId == startId)
+            break;
+
+        const Node &currentNode = *mGraph->getNodes().at(nodeId);
+        const Edge *edge = currentNode.parentEdge;
+
+        if (edge != nullptr)
+        {
+            path.push_back(edge->getId()); 
+        }
+    }
+
+    // Da wir den Pfad rückwärts (vom Ziel zum Start) abgelaufen sind,
+    // müssen wir die Liste am Ende einmal umdrehen.
+    std::reverse(path.begin(), path.end());
+
+    return path;
+}
+
+void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads)
+{
     // Alle Knoten zurücksetzen (für wiederholte Nutzung)
     for (auto &[id, node] : mGraph->getNodes())
     {
@@ -84,48 +165,6 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
             }
         }
     }
-
-    // Pfad rekonstruieren
-    std::vector<std::tuple<uint64_t, Coordinates>> path;
-    for (uint64_t nodeId = goalId;; nodeId = mGraph->getNodes().at(nodeId)->parent)
-    {
-        if (nodeId == 0)
-        {
-            std::cerr << "No path found from " << startId << " to " << goalId << "\n";
-            return std::vector<std::tuple<uint64_t, Coordinates>>(); // Kein Pfad gefunden
-        }
-        const Node &currentNode = *mGraph->getNodes().at(nodeId);
-        path.emplace_back(nodeId, currentNode.getCoordinates());
-
-        if (nodeId == startId)
-            break;
-
-        const Edge *edge = currentNode.parentEdge;
-        if (edge == nullptr)
-            continue;
-
-        const auto &edgePath = edge->getPath();
-        if (edgePath.size() <= 2)
-            continue;
-
-        if (!currentNode.parentEdgeReversed)
-        {
-            for (size_t pathIndex = edgePath.size() - 2; pathIndex > 0; --pathIndex)
-            {
-                path.emplace_back(0, edgePath.at(pathIndex));
-            }
-        }
-        else
-        {
-            for (size_t pathIndex = 1; pathIndex < edgePath.size() - 1; ++pathIndex)
-            {
-                path.emplace_back(0, edgePath.at(pathIndex));
-            }
-        }
-    }
-
-    std::reverse(path.begin(), path.end());
-    return path;
 }
 
 std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads)
@@ -142,6 +181,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCo
 
     return path;
 }
+
 double Router::heuristic(const Node &a, const Node &b)
 {
     return HelperFunctions::haversine(a.getCoordinates(), b.getCoordinates());
