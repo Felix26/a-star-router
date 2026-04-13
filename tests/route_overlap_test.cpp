@@ -17,8 +17,8 @@ int main()
 
         Routes routeHandler(router);
 
-        Path gpx1path = HelperFunctions::getGPXTrackPoints("/home/felixm/Nextcloud/Studienarbeit/Daten/230305-30_matched_auto.gpx");
-        Path gpx2path = HelperFunctions::getGPXTrackPoints("/home/felixm/Nextcloud/Studienarbeit/Daten/230305-30_matched_hand.gpx");
+        Path gpx1path = HelperFunctions::getGPXTrackPoints("C:\\Users\\Felix\\Nextcloud\\Studienarbeit\\Daten\\230305-30_matched_hand.gpx");
+        Path gpx2path = HelperFunctions::getGPXTrackPoints("C:\\Users\\Felix\\Nextcloud\\Studienarbeit\\Daten\\230305-30_matched_graphhopper.gpx");
 
         auto edgeSet1 = routeHandler.getEdgeSet(gpx1path);
         auto edgeSet2 = routeHandler.getEdgeSet(gpx2path);

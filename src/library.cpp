@@ -436,7 +436,7 @@ namespace HelperFunctions
         return {}; 
     }
 
-    void saveEdgesAsGeoJSON(const std::vector<Edge>& edges)
+    void saveEdgesAsGeoJSON(const std::vector<Edge *> &edges)
     {
         // Statische Variable behält ihren Wert über Funktionsaufrufe hinweg
         static int fileCounter = 1;
@@ -455,12 +455,12 @@ namespace HelperFunctions
         file << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n";
 
         for (size_t i = 0; i < edges.size(); ++i) {
-            const Edge& edge = edges[i];
+            const Edge *edge = edges[i];
             file << "    {\n      \"type\": \"Feature\",\n";
-            file << "      \"properties\": { \"id\": " << edge.getId() << ", \"weight\": " << edge.getWeight() << " },\n";
+            file << "      \"properties\": { \"id\": " << edge->getId() << ", \"weight\": " << edge->getWeight() << " },\n";
             file << "      \"geometry\": {\n        \"type\": \"LineString\",\n        \"coordinates\": [\n";
 
-            const auto& path = edge.getPath();
+            const auto& path = edge->getPath();
             for (size_t j = 0; j < path.size(); ++j) {
                 file << "          [" << path[j].getLongitude() << ", " << path[j].getLatitude() << "]";
                 if (j < path.size() - 1) file << ",";

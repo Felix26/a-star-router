@@ -10,9 +10,9 @@ class Routes
     public:
         Routes(Router &router) : mRouter(router) {}
 
-        std::vector<Edge> getEdgeSet(const std::vector<Coordinates> &coordinates);
+        std::vector<Edge *> getEdgeSet(const std::vector<Coordinates> &coordinates);
 
-        double getJaccardCoefficient(const std::vector<Edge> &edgeIds1, const std::vector<Edge> &edgeIds2);
+        double getJaccardCoefficient(const std::vector<Edge *> &edges1, const std::vector<Edge *> &edges2);
 
     private:
         Router &mRouter;

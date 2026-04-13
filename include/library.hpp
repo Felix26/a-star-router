@@ -50,5 +50,5 @@ namespace HelperFunctions
 
     std::vector<Coordinates> getGPXTrackPoints(const std::filesystem::path &file);
 
-    void saveEdgesAsGeoJSON(const std::vector<Edge>& edges);
+    void saveEdgesAsGeoJSON(const std::vector<Edge *> &edges);
 } // namespace HelperFunctions
