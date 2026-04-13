@@ -6,15 +6,19 @@
 #include <tuple>
 #include <vector>
 #include <filesystem>
+#include <pugixml.hpp>
 
 #include <ankerl/unordered_dense.h>
 
 #include "coordinates.hpp"
 #include "box.hpp"
+#include "edge.hpp"
 
 class Graph;
 class OsmNode;
 class OsmWay;
+
+typedef std::vector<Coordinates> Path;
 
 namespace HelperFunctions
 {
@@ -43,4 +47,8 @@ namespace HelperFunctions
                      ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways);
 
     double logisticFunction(double x, double lowerBound = 0, double upperBound = 1, double steepness = 1, double maxGrowthX = 0);
+
+    std::vector<Coordinates> getGPXTrackPoints(const std::filesystem::path &file);
+
+    void saveEdgesAsGeoJSON(const std::vector<Edge>& edges);
 } // namespace HelperFunctions

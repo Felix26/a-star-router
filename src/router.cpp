@@ -65,12 +65,12 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
     return path;
 }
 
-std::vector<uint64_t> Router::aStarEdges(uint64_t startId, uint64_t goalId)
+std::vector<Edge> Router::aStarEdges(uint64_t startId, uint64_t goalId)
 {
     aStarRouting(startId, goalId);
 
     // Pfad rekonstruieren
-    std::vector<uint64_t> path;
+    std::vector<Edge> path;
 
     for (uint64_t nodeId = goalId;; nodeId = mGraph->getNodes().at(nodeId)->parent)
     {
@@ -88,7 +88,7 @@ std::vector<uint64_t> Router::aStarEdges(uint64_t startId, uint64_t goalId)
 
         if (edge != nullptr)
         {
-            path.push_back(edge->getId()); 
+            path.push_back(*edge); 
         }
     }
 

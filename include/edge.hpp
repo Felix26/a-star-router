@@ -30,10 +30,13 @@ class Edge
         uint16_t snapPointCounter = 0;
         uint16_t bestSnapPointCounter = 0;
 
-    private:
-        const uint64_t mId;
-        double mWaylength;
-        const std::array<std::weak_ptr<Node>, 2> mNodes;
+        bool operator<(const Edge& other) const { return mId < other.mId; }
+        bool operator==(const Edge& other) const { return mId == other.mId; }
 
-        const std::vector<Coordinates> mPath;
+    private:
+        uint64_t mId;
+        double mWaylength;
+        std::array<std::weak_ptr<Node>, 2> mNodes;
+
+        std::vector<Coordinates> mPath;
 };

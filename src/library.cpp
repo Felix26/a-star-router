@@ -413,4 +413,68 @@ namespace HelperFunctions
     {
         return (upperBound - lowerBound) / (1 + std::exp(- steepness * (x - maxGrowthX))) + lowerBound;
     }
+
+    std::vector<Coordinates> getGPXTrackPoints(const std::filesystem::path &file)
+    {
+        pugi::xml_document doc;
+        
+        if(doc.load_file(file.c_str())) 
+        {
+            std::vector<Coordinates> trackPoints;
+            
+            auto trkseg = doc.child("gpx").child("trk").child("trkseg");
+            
+            for(pugi::xml_node trackpoint : trkseg.children("trkpt"))
+            {
+                Coordinates point(trackpoint.attribute("lat").as_double(), trackpoint.attribute("lon").as_double());
+                trackPoints.emplace_back(point);
+            }
+
+            return trackPoints;
+        }
+
+        return {}; 
+    }
+
+    void saveEdgesAsGeoJSON(const std::vector<Edge>& edges)
+    {
+        // Statische Variable behält ihren Wert über Funktionsaufrufe hinweg
+        static int fileCounter = 1;
+        
+        // Dateiname zusammenbauen (z.B. debug_route_1.geojson)
+        std::string filename = "debug_route_" + std::to_string(fileCounter++) + ".geojson";
+        
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "Fehler: Konnte Datei " << filename << " nicht schreiben." << std::endl;
+            return;
+        }
+
+        // GeoJSON Header
+        file << std::fixed << std::setprecision(6);
+        file << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n";
+
+        for (size_t i = 0; i < edges.size(); ++i) {
+            const Edge& edge = edges[i];
+            file << "    {\n      \"type\": \"Feature\",\n";
+            file << "      \"properties\": { \"id\": " << edge.getId() << ", \"weight\": " << edge.getWeight() << " },\n";
+            file << "      \"geometry\": {\n        \"type\": \"LineString\",\n        \"coordinates\": [\n";
+
+            const auto& path = edge.getPath();
+            for (size_t j = 0; j < path.size(); ++j) {
+                file << "          [" << path[j].getLongitude() << ", " << path[j].getLatitude() << "]";
+                if (j < path.size() - 1) file << ",";
+                file << "\n";
+            }
+
+            file << "        ]\n      }\n    }";
+            if (i < edges.size() - 1) file << ",";
+            file << "\n";
+        }
+
+        file << "  ]\n}\n";
+        file.close();
+
+        std::cout << "Route gespeichert: " << std::filesystem::absolute(filename) << std::endl;
+    }
 } // namespace HelperFunctions

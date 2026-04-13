@@ -72,6 +72,7 @@ add_library(router_core STATIC
   src/box.cpp
   src/quadtree.cpp
   src/router.cpp
+  src/routes.cpp
 )
 
 target_compile_options(router_core PRIVATE
