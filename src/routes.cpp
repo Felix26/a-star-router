@@ -65,20 +65,20 @@ double Routes::getJaccardCoefficient(const std::vector<Edge *> &edges1, const st
     {
         if ((*it1)->getId() < (*it2)->getId()) 
         { 
-            std::cout << "--- Abweichung gefunden ---\n"
+            /*std::cout << "--- Abweichung gefunden ---\n"
                       << "Route 1 schaut auf: Edge " << (*it1)->getId() << " (Länge: " << (*it1)->getWeight() << ")\n"
                       << "Route 2 schaut auf: Edge " << (*it2)->getId() << " (Länge: " << (*it2)->getWeight() << ")\n"
-                      << "-> Edge " << (*it1)->getId() << " fehlt in Route 2. Wird zur Union addiert.\n\n";
+                      << "-> Edge " << (*it1)->getId() << " fehlt in Route 2. Wird zur Union addiert.\n\n";*/
                       
             unionLength += (*it1)->getWeight();
             ++it1;
         }
         else if ((*it2)->getId() < (*it1)->getId()) 
         { 
-            std::cout << "--- Abweichung gefunden ---\n"
+            /*std::cout << "--- Abweichung gefunden ---\n"
                       << "Route 1 schaut auf: Edge " << (*it1)->getId() << " (Länge: " << (*it1)->getWeight() << ")\n"
                       << "Route 2 schaut auf: Edge " << (*it2)->getId() << " (Länge: " << (*it2)->getWeight() << ")\n"
-                      << "-> Edge " << (*it2)->getId() << " fehlt in Route 1. Wird zur Union addiert.\n\n";
+                      << "-> Edge " << (*it2)->getId() << " fehlt in Route 1. Wird zur Union addiert.\n\n";*/
                       
             unionLength += (*it2)->getWeight();
             ++it2; 

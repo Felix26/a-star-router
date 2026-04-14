@@ -17,17 +17,17 @@ int main()
 
         Routes routeHandler(router);
 
-        Path gpx1path = HelperFunctions::getGPXTrackPoints("C:\\Users\\Felix\\Nextcloud\\Studienarbeit\\Daten\\230305-30_matched_hand.gpx");
-        Path gpx2path = HelperFunctions::getGPXTrackPoints("C:\\Users\\Felix\\Nextcloud\\Studienarbeit\\Daten\\230305-30_matched_graphhopper.gpx");
+        Path gpx1path = HelperFunctions::getGPXTrackPoints(std::string(PROJECT_SOURCE_DIR) + "/testdata/Daten/230305-30_matched_hand.gpx");
+        Path gpx2path = HelperFunctions::getGPXTrackPoints(std::string(PROJECT_SOURCE_DIR) + "/testdata/Daten/230305-30_matched_auto.gpx");
 
         auto edgeSet1 = routeHandler.getEdgeSet(gpx1path);
         auto edgeSet2 = routeHandler.getEdgeSet(gpx2path);
 
-        double coefficient = routeHandler.getJaccardCoefficient(edgeSet1, edgeSet2);
+        double coefficientIdentical = routeHandler.getJaccardCoefficient(edgeSet1, edgeSet1);
+        double coefficientDifferent = routeHandler.getJaccardCoefficient(edgeSet1, edgeSet2);
 
-        std::cout << "Jaccard Coefficient: " << coefficient << ", Number of Edges: " << edgeSet1.size() << ", " << edgeSet2.size() << std::endl;
-        HelperFunctions::saveEdgesAsGeoJSON(edgeSet1);
-        HelperFunctions::saveEdgesAsGeoJSON(edgeSet2);
+        assert(std::abs(coefficientIdentical - 1) < 0.0001);
+        assert(std::abs(coefficientDifferent - 1) > 0.0001);
     }
     catch (const std::exception &e)
     {
