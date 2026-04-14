@@ -31,7 +31,7 @@ void GPXParser::loadGPXFiles(const std::string &directory)
     }
 }
 
-std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints)
+std::vector<std::tuple<uint64_t, Coordinates>> GPXParser::mapMatching(Router &router, const std::vector<Coordinates> &trackPoints)
 {
     std::vector<std::tuple<uint64_t, Coordinates>> projections;
     std::vector<Coordinates> routingPoints;

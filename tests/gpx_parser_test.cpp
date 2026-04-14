@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
         auto &trackPoints = parser.getTracks().at(trackName);
 
-        const auto &projections = parser.fillEdgeIDs(router, trackPoints);
+        const auto &projections = parser.mapMatching(router, trackPoints);
 
         std::cout << HelperFunctions::exportPathToGeoJSON(projections, std::string(PROJECT_SOURCE_DIR) + "/testdata/" + trackName + "_matched.geojson") << std::endl;
 

@@ -24,7 +24,7 @@ class GPXParser
 
         void loadGPXFiles(const std::string &directory);
 
-        std::vector<std::tuple<uint64_t, Coordinates>> fillEdgeIDs(Router &router, const std::vector<Coordinates> &trackPoints);
+        std::vector<std::tuple<uint64_t, Coordinates>> mapMatching(Router &router, const std::vector<Coordinates> &trackPoints);
 
         void calculateSnapPenalties();
         bool doRouting(const Coordinates &start, const Coordinates &end, Router &router, std::vector<std::tuple<uint64_t, Coordinates>> &pathContainer) const;
