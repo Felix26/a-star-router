@@ -216,19 +216,19 @@ namespace HelperFunctions
     double euclideanDistanceSquared(const Coordinates &c1, const Coordinates &c2)
     {
         // magic numbers:
-        // 0.017453292519943295 = pi / 180
+        // DEG_TO_RAD = pi / 180
         // 6371000.0           = mean Earth radius [m]
         // 0.739942111693848   = cos(48.5°)  (reference latitude for BW)
 
         const double dy =
             6371000.0 *
             (c2.getLatitude() - c1.getLatitude()) *
-            0.017453292519943295;
+            DEG_TO_RAD;
 
         const double dx =
             6371000.0 *
             (c2.getLongitude() - c1.getLongitude()) *
-            0.017453292519943295 *
+            DEG_TO_RAD *
             0.739942111693848;
 
         return dx * dx + dy * dy; // m²
