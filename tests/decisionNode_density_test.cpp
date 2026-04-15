@@ -19,7 +19,7 @@ int main()
         GPXParser parser;
         Routes routes(router);
 
-        parser.loadGPXFiles("/home/felixm/Nextcloud/Studienarbeit/gpxdata");
+        parser.loadGPXFiles(std::string(PROJECT_SOURCE_DIR) + "/testdata/gpxdata");
         
         //Path trackPoints = HelperFunctions::getGPXTrackPoints("/home/felixm/Nextcloud/Studienarbeit/gpxdata/230305-30.gpx");
         //std::vector<std::tuple<uint64_t, Coordinates>> matchedTrack = parser.mapMatching(router, trackPoints);
@@ -43,7 +43,7 @@ int main()
                     if(router.getGraph().getNodes().at(id)->edges.size() > 2) decisionNodes++;
                 }
             }
-            //std::cout << "Path " << filename << " has " << HelperFunctions::calculatePathLength(points) << " m with " << decisionNodes << " decision nodes (" << HelperFunctions::calculatePathLength(points) / decisionNodes << " m/node).\n";
+            std::cout << "Path " << filename << " has " << HelperFunctions::calculatePathLength(points) << " m with " << decisionNodes << " decision nodes (" << HelperFunctions::calculatePathLength(points) / decisionNodes << " m/node).\n";
             file << filename << "," << std::format("{:2}", HelperFunctions::calculatePathLength(points)) << "," << decisionNodes << std::endl;
         }
 
