@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <cassert>
+#include <fstream>
 
 #include "router.hpp"
 #include "gpxparser.hpp"
@@ -17,22 +18,36 @@ int main()
         Router router(osmPath);
         GPXParser parser;
         Routes routes(router);
+
+        parser.loadGPXFiles("/home/felixm/Nextcloud/Studienarbeit/gpxdata");
         
-        Path trackPoints = HelperFunctions::getGPXTrackPoints("/home/felixm/Nextcloud/Studienarbeit/gpxdata/230305-30.gpx");
-        std::vector<std::tuple<uint64_t, Coordinates>> matchedTrack = parser.mapMatching(router, trackPoints);
+        //Path trackPoints = HelperFunctions::getGPXTrackPoints("/home/felixm/Nextcloud/Studienarbeit/gpxdata/230305-30.gpx");
+        //std::vector<std::tuple<uint64_t, Coordinates>> matchedTrack = parser.mapMatching(router, trackPoints);
 
-        uint16_t decisionNodes = 0;
+        std::ofstream file("points.csv");
 
-        for(auto &[id, coords] : matchedTrack)
+        file << "name,length,decisionNodes\n";
+
+
+        for(auto &[filename, points] : parser.getTracks())
         {
-            if(id && id < 0x00FFFFFFFFFFFFFF)
+            uint16_t decisionNodes = 0;
+            if(!router.getQuadtree().getBoundary().contains(points[0])) continue;
+            std::vector<std::tuple<uint64_t, Coordinates>> matchedTrack = parser.mapMatching(router, points);
+
+            for(auto &[id, coords] : matchedTrack)
             {
-                std::cout << *(router.getGraph().getNodes().at(id)) << std::endl;
-                if(router.getGraph().getNodes().at(id)->edges.size() > 2) decisionNodes++;
+                if(id && id < 0x00FFFFFFFFFFFFFF)
+                {
+                    //std::cout << *(router.getGraph().getNodes().at(id)) << std::endl;
+                    if(router.getGraph().getNodes().at(id)->edges.size() > 2) decisionNodes++;
+                }
             }
+            //std::cout << "Path " << filename << " has " << HelperFunctions::calculatePathLength(points) << " m with " << decisionNodes << " decision nodes (" << HelperFunctions::calculatePathLength(points) / decisionNodes << " m/node).\n";
+            file << filename << "," << std::format("{:2}", HelperFunctions::calculatePathLength(points)) << "," << decisionNodes << std::endl;
         }
 
-        std::cout << "Path has " << HelperFunctions::calculatePathLength(trackPoints) << " m with " << decisionNodes << " decision nodes (" << HelperFunctions::calculatePathLength(trackPoints) / decisionNodes << " m/node).\n";
+        file.close();
     }
     catch (const std::exception &e)
     {
