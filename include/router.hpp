@@ -35,4 +35,6 @@ class Router
         
         static double heuristic(const Node &a, const Node &b);
         void aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads = 0);
+
+        uint32_t currentEpoch = 0;
 };

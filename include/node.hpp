@@ -27,6 +27,7 @@ class Node : public OsmNode
         bool visited = false;
         Edge *parentEdge = nullptr;                          // edge used to reach this node
         bool parentEdgeReversed = false;                     // traversal direction flag
+        uint32_t searchEpoch = 0;
 
     private:
 };

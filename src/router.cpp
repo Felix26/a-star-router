@@ -101,19 +101,27 @@ std::vector<Edge *> Router::aStarEdges(uint64_t startId, uint64_t goalId)
 
 void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads)
 {
-    // Alle Knoten zurücksetzen (für wiederholte Nutzung)
-    for (auto &[id, node] : mGraph->getNodes())
+    currentEpoch++;
+
+    auto prepareNode = [&](std::shared_ptr<Node>& node)
     {
-        node->g = std::numeric_limits<double>::infinity();
-        node->f = std::numeric_limits<double>::infinity();
-        node->visited = false;
-        node->parent = 0;
-        node->parentEdge = nullptr;
-        node->parentEdgeReversed = false;
-    }
+        if (node->searchEpoch != currentEpoch)
+        {
+            node->g = std::numeric_limits<double>::infinity();
+            node->f = std::numeric_limits<double>::infinity();
+            node->visited = false;
+            node->parent = 0;
+            node->parentEdge = nullptr;
+            node->parentEdgeReversed = false;
+            node->searchEpoch = currentEpoch;
+        }
+    };
 
     std::shared_ptr<Node> start = mGraph->getNodes().at(startId);
     std::shared_ptr<Node> goal = mGraph->getNodes().at(goalId);
+
+    prepareNode(start);
+    prepareNode(goal);
 
     start->g = 0.0;
     start->f = Router::heuristic(*start, *goal) / (snapToRoads * (NO_EDGE_SNAP_PENALTY - 1) + 1);
@@ -148,6 +156,7 @@ void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoa
 
             // Nächster Nachbar bestimmen
             std::shared_ptr<Node> neighbor = (fromNode->getId() == currentId) ? toNode : fromNode;
+            prepareNode(neighbor);
 
             if (neighbor->visited)
                 continue;
