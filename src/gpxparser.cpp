@@ -137,7 +137,7 @@ bool GPXParser::checkRoutingTrackPoints(const std::vector<ClosestEdges> &edges, 
 
     if((pointIndex - lastPointIndex) > MAX_ROUTING_LENGTH && bestPointMetric > 0.95)
     {
-        std::cout << "Added routing point: " << bestPointCoords << " at index: " << bestPointIndex << " with metric: " << bestPointMetric << std::endl;
+        //std::cout << "Added routing point: " << bestPointCoords << " at index: " << bestPointIndex << " with metric: " << bestPointMetric << std::endl;
         routingTrackPoints.emplace_back(bestPointCoords);
         lastPointIndex = bestPointIndex;
         bestPointMetric = 0;

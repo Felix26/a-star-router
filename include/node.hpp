@@ -14,6 +14,11 @@ class Node : public OsmNode
     public:
         Node(const OsmNode &other) : OsmNode(other) {}
 
+        friend std::ostream& operator<<(std::ostream& os, const Node& node)
+        {
+            return os << "NODE: " << node.getId() << ", " << node.getCoordinates() << ", Edges: " << node.edges.size();
+        }
+
         std::vector<std::shared_ptr<Edge>> edges;
 
         double g = std::numeric_limits<double>::infinity();  // known cost from start
