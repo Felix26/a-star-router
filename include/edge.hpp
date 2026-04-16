@@ -8,6 +8,13 @@
 #include <coordinates.hpp>
 #include <memory>
 
+#include <parameters.hpp>
+
+struct Tags
+{
+    Parameters::RoadClass highway = Parameters::RoadClass::Unknown;
+};
+
 class Edge
 {
     public:
@@ -29,6 +36,8 @@ class Edge
 
         uint16_t snapPointCounter = 0;
         uint16_t bestSnapPointCounter = 0;
+
+        Tags mTags;
 
         bool operator<(const Edge& other) const { return mId < other.mId; }
         bool operator==(const Edge& other) const { return mId == other.mId; }

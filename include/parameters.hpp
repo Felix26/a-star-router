@@ -48,42 +48,42 @@ class Parameters
             Unknown = 26
         };
 
-        static uint8_t getHighwayTagID(const std::string& tagName);
-        
+        static Parameters::RoadClass getHighwayTagID(const std::string& tagName);
+
     private:
-        static const inline std::unordered_map<std::string, uint8_t> highway = {
+        static const inline std::unordered_map<std::string, Parameters::RoadClass> highway = {
             // Hochrangiges Straßennetz
-            {"motorway", static_cast<uint8_t>(RoadClass::Motorway)},
-            {"motorway_link", static_cast<uint8_t>(RoadClass::MotorwayLink)},
-            {"trunk", static_cast<uint8_t>(RoadClass::Trunk)},
-            {"trunk_link", static_cast<uint8_t>(RoadClass::TrunkLink)},
-            {"primary", static_cast<uint8_t>(RoadClass::Primary)},
-            {"primary_link", static_cast<uint8_t>(RoadClass::PrimaryLink)},
-            {"secondary", static_cast<uint8_t>(RoadClass::Secondary)},
-            {"secondary_link", static_cast<uint8_t>(RoadClass::SecondaryLink)},
-            {"tertiary", static_cast<uint8_t>(RoadClass::Tertiary)},
-            {"tertiary_link", static_cast<uint8_t>(RoadClass::TertiaryLink)},
+            {"motorway", RoadClass::Motorway},
+            {"motorway_link", RoadClass::MotorwayLink},
+            {"trunk", RoadClass::Trunk},
+            {"trunk_link", RoadClass::TrunkLink},
+            {"primary", RoadClass::Primary},
+            {"primary_link", RoadClass::PrimaryLink},
+            {"secondary", RoadClass::Secondary},
+            {"secondary_link", RoadClass::SecondaryLink},
+            {"tertiary", RoadClass::Tertiary},
+            {"tertiary_link", RoadClass::TertiaryLink},
 
             // Untergeordnetes Straßennetz
-            {"unclassified", static_cast<uint8_t>(RoadClass::Unclassified)},
-            {"residential", static_cast<uint8_t>(RoadClass::Residential)},
-            {"living_street", static_cast<uint8_t>(RoadClass::LivingStreet)},
-            {"service", static_cast<uint8_t>(RoadClass::Service)},
-            {"road", static_cast<uint8_t>(RoadClass::Road)},
+            {"unclassified", RoadClass::Unclassified},
+            {"residential", RoadClass::Residential},
+            {"living_street", RoadClass::LivingStreet},
+            {"service", RoadClass::Service},
+            {"road", RoadClass::Road},
 
             // Wege & Aktive Mobilität
-            {"pedestrian", static_cast<uint8_t>(RoadClass::Pedestrian)},
-            {"footway", static_cast<uint8_t>(RoadClass::Footway)},
-            {"path", static_cast<uint8_t>(RoadClass::Path)},
-            {"steps", static_cast<uint8_t>(RoadClass::Steps)},
-            {"cycleway", static_cast<uint8_t>(RoadClass::Cycleway)},
-            {"track", static_cast<uint8_t>(RoadClass::Track)},
-            {"bridleway", static_cast<uint8_t>(RoadClass::Bridleway)},
-            {"corridor", static_cast<uint8_t>(RoadClass::Corridor)},
+            {"pedestrian", RoadClass::Pedestrian},
+            {"footway", RoadClass::Footway},
+            {"path", RoadClass::Path},
+            {"steps", RoadClass::Steps},
+            {"cycleway", RoadClass::Cycleway},
+            {"track", RoadClass::Track},
+            {"bridleway", RoadClass::Bridleway},
+            {"corridor", RoadClass::Corridor},
 
             // Sonderfälle
-            {"platform", static_cast<uint8_t>(RoadClass::Platform)},
-            {"construction", static_cast<uint8_t>(RoadClass::Construction)},
-            {"proposed", static_cast<uint8_t>(RoadClass::Proposed)}
+            {"platform", RoadClass::Platform},
+            {"construction", RoadClass::Construction},
+            {"proposed", RoadClass::Proposed}
         };
 };
