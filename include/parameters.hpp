@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <cstdint>
+#include <array>
 
 class Parameters
 {
@@ -49,7 +50,9 @@ class Parameters
         };
 
         static Parameters::RoadClass getHighwayTagID(const std::string& tagName);
-        static uint8_t getHighwayParameterCount() { return static_cast<uint8_t>(Parameters::RoadClass::Unknown) + 1; };
+        static constexpr uint8_t highwayParameterCount = static_cast<uint8_t>(Parameters::RoadClass::Unknown) + 1;
+        static std::string_view getHighwayTagName(Parameters::RoadClass tagID);
+        static std::string_view getHighwayTagName(uint8_t tagID);
 
     private:
         static const inline std::unordered_map<std::string, Parameters::RoadClass> highway = {
@@ -87,4 +90,19 @@ class Parameters
             {"construction", RoadClass::Construction},
             {"proposed", RoadClass::Proposed}
         };
-};
+
+        static const inline std::array<std::string_view, highwayParameterCount> idToNameArray = []() {
+            
+            std::array<std::string_view, highwayParameterCount> arr;
+            arr.fill("unknown"); // Fallback für alles, was schiefgeht
+            
+            // Wir iterieren über deine bestehende Map und füllen das Array
+            for (const auto& [name, id] : highway) {
+                size_t index = static_cast<size_t>(id);
+                if (index < highwayParameterCount) {
+                    arr[index] = name; 
+                }
+            }
+            return arr;
+        }();
+    };

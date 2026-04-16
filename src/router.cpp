@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "library.hpp"
+#include "weights.hpp"
 
 Router::Router(const std::string &osmFile)
 {
@@ -18,9 +19,9 @@ Router::Router(const std::string &osmFile)
     mQuadtree = std::make_unique<Quadtree>(*mGraph, boundary);
 }
 
-std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads)
+std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads, bool useWeighting)
 {
-    aStarRouting(startId, goalId, snapToRoads);
+    aStarRouting(startId, goalId, snapToRoads, useWeighting);
 
     // Pfad rekonstruieren
     std::vector<std::tuple<uint64_t, Coordinates>> path;
@@ -65,9 +66,9 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(uint64_t startId, u
     return path;
 }
 
-std::vector<Edge *> Router::aStarEdges(uint64_t startId, uint64_t goalId)
+std::vector<Edge *> Router::aStarEdges(uint64_t startId, uint64_t goalId, bool useWeighting)
 {
-    aStarRouting(startId, goalId, 1);
+    aStarRouting(startId, goalId, 1, useWeighting);
 
     // Pfad rekonstruieren
     std::vector<Edge *> path;
@@ -99,7 +100,7 @@ std::vector<Edge *> Router::aStarEdges(uint64_t startId, uint64_t goalId)
     return path;
 }
 
-void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads)
+void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads, bool useWeighting)
 {
     currentEpoch++;
 
@@ -161,7 +162,7 @@ void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoa
             if (neighbor->visited)
                 continue;
 
-            double tentativeG = current->g + edge->getWeight();
+            double tentativeG = current->g + edge->getWeight() * (useWeighting ? HighwayWeights::getHighwayPenalty(edge->tags) : 1);
 
             if (tentativeG < neighbor->g)
             {
@@ -176,7 +177,7 @@ void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoa
     }
 }
 
-std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads)
+std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads, bool useWeighting)
 {
     auto [closestStartPoint, closestStartEdgeId, startSegment] = getEdgeSplit(startCoords);
     uint64_t newNodeIdStart = mGraph->addSplit(closestStartPoint, closestStartEdgeId, startSegment);
@@ -184,7 +185,7 @@ std::vector<std::tuple<uint64_t, Coordinates>> Router::aStar(Coordinates startCo
     auto [closestEndPoint, closestEndEdgeId, endSegment] = getEdgeSplit(goalCoords);
     uint64_t newNodeIdEnd = mGraph->addSplit(closestEndPoint, closestEndEdgeId, endSegment);
 
-    std::vector<std::tuple<uint64_t, Coordinates>> path = aStar(newNodeIdStart, newNodeIdEnd, snapToRoads);
+    std::vector<std::tuple<uint64_t, Coordinates>> path = aStar(newNodeIdStart, newNodeIdEnd, snapToRoads, useWeighting);
 
     mGraph->removeSplitItems();
 

@@ -10,3 +10,19 @@ Parameters::RoadClass Parameters::getHighwayTagID(const std::string &tagName)
 
     return RoadClass::Unknown;
 }
+
+std::string_view Parameters::getHighwayTagName(Parameters::RoadClass tagID)
+{
+    size_t index = static_cast<size_t>(tagID);
+    return Parameters::getHighwayTagName(index);
+}
+
+std::string_view Parameters::getHighwayTagName(uint8_t tagID)
+{
+    size_t index = static_cast<size_t>(tagID);
+    if (index >= highwayParameterCount)
+    {
+        return "unknown";
+    }
+    return idToNameArray[index];
+}

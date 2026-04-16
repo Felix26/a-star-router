@@ -74,6 +74,7 @@ add_library(router_core STATIC
   src/router.cpp
   src/routes.cpp
   src/parameters.cpp
+  src/weights.cpp
 )
 
 target_compile_options(router_core PRIVATE

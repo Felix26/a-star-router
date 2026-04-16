@@ -16,11 +16,11 @@ class Router
         Graph &getGraph() { return *mGraph; }
         Quadtree &getQuadtree() { return *mQuadtree; }
 
-        std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads = 0);
+        std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads = 0, bool useWeighting = false);
         
-        std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads = 0);
+        std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads = 0, bool useWeighting = false);
 
-        std::vector<Edge *> aStarEdges(uint64_t startId, uint64_t goalId);
+        std::vector<Edge *> aStarEdges(uint64_t startId, uint64_t goalId, bool useWeighting = false);
         
         std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
         
@@ -34,7 +34,7 @@ class Router
         std::unique_ptr<Quadtree> mQuadtree;
         
         static double heuristic(const Node &a, const Node &b);
-        void aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads = 0);
+        void aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads = 0, bool useWeighting = false);
 
         uint32_t currentEpoch = 0;
 };
