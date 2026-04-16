@@ -100,6 +100,7 @@ namespace HelperFunctions
 
             bool isHighway = false;
             std::vector<uint64_t> nodeRefs;
+            std::string highwayTag;
 
             if (!xmlTextReaderIsEmptyElement(reader))
             {
@@ -120,6 +121,7 @@ namespace HelperFunctions
                             if (getAttributeValue(reader, "k") == "highway")
                             {
                                 isHighway = true;
+                                highwayTag = getAttributeValue(reader, "v");
                             }
                         }
                         else if (xmlStrcmp(childName, BAD_CAST "nd") == 0)
@@ -177,6 +179,8 @@ namespace HelperFunctions
             {
                 return;
             }
+
+            way->tags.highway = Parameters::getHighwayTagID(highwayTag);
 
             way->getNodes().front()->isEdge = true;
             way->getNodes().back()->isEdge = true;
@@ -414,29 +418,36 @@ namespace HelperFunctions
         return (upperBound - lowerBound) / (1 + std::exp(- steepness * (x - maxGrowthX))) + lowerBound;
     }
 
-    std::vector<Coordinates> getGPXTrackPoints(const std::filesystem::path &file)
+    std::vector<std::vector<Coordinates>> getGPXTrackPoints(const std::filesystem::path &file)
     {
         pugi::xml_document doc;
         
         if(doc.load_file(file.c_str())) 
         {
-            std::vector<Coordinates> trackPoints;
+            std::vector<std::vector<Coordinates>> allSegments;
+            pugi::xpath_node_set segments = doc.select_nodes("//trkseg");
             
-            pugi::xpath_node_set trkpts = doc.select_nodes("//trkpt");
-            
-            for(pugi::xpath_node node : trkpts)
+            for(pugi::xpath_node segNode : segments)
             {
-                pugi::xml_node trackpoint = node.node();
-                Coordinates point(
-                    trackpoint.attribute("lat").as_double(), 
-                    trackpoint.attribute("lon").as_double()
-                );
-                trackPoints.emplace_back(point);
+                pugi::xml_node trkseg = segNode.node();
+                std::vector<Coordinates> currentSegment;
+                
+                for(pugi::xml_node trackpoint : trkseg.children("trkpt"))
+                {
+                    Coordinates point(
+                        trackpoint.attribute("lat").as_double(), 
+                        trackpoint.attribute("lon").as_double()
+                    );
+                    currentSegment.emplace_back(point);
+                }
+
+                if (!currentSegment.empty()) 
+                {
+                    allSegments.emplace_back(std::move(currentSegment));
+                }
             }
-
-            return trackPoints;
+            return allSegments;
         }
-
         return {}; 
     }
 

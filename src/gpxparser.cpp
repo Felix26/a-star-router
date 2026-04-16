@@ -112,10 +112,14 @@ bool GPXParser::doRouting(const Coordinates &start, const Coordinates &end, Rout
 void GPXParser::parseGPXFile(const std::filesystem::directory_entry &file)
 {
     auto trackPoints = HelperFunctions::getGPXTrackPoints(file);
-    
-    if(!trackPoints.empty())
+
+    for(int i = 0; i < trackPoints.size(); i++)
     {
-        mTracks.insert({file.path().filename().string(), trackPoints});
+        if(!trackPoints[i].empty())
+        {
+            std::string filename = i ? file.path().filename().string() + std::to_string(i) : file.path().filename().string();
+            mTracks.insert({filename, trackPoints[i]});
+        }
     }
 }
 

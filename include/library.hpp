@@ -48,7 +48,7 @@ namespace HelperFunctions
 
     double logisticFunction(double x, double lowerBound = 0, double upperBound = 1, double steepness = 1, double maxGrowthX = 0);
 
-    std::vector<Coordinates> getGPXTrackPoints(const std::filesystem::path &file);
+    std::vector<std::vector<Coordinates>> getGPXTrackPoints(const std::filesystem::path &file);
 
     void saveEdgesAsGeoJSON(const std::vector<Edge *> &edges);
 } // namespace HelperFunctions

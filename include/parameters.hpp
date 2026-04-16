@@ -49,6 +49,7 @@ class Parameters
         };
 
         static Parameters::RoadClass getHighwayTagID(const std::string& tagName);
+        static uint8_t getHighwayParameterCount() { return static_cast<uint8_t>(Parameters::RoadClass::Unknown) + 1; };
 
     private:
         static const inline std::unordered_map<std::string, Parameters::RoadClass> highway = {

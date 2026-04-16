@@ -5,7 +5,7 @@
 
 #include "library.hpp"
 
-Edge::Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path)  : mId(id), mWaylength(waylength), mNodes{from, to}, mPath(std::move(path))
+Edge::Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path, Tags tags)  : mId(id), mWaylength(waylength), mNodes{from, to}, mPath(std::move(path)), tags(tags)
 {
 }
 

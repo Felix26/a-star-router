@@ -17,8 +17,8 @@ int main()
 
         Routes routeHandler(router);
 
-        Path gpx1path = HelperFunctions::getGPXTrackPoints(std::string(PROJECT_SOURCE_DIR) + "/testdata/Daten/230305-30_matched_hand.gpx");
-        Path gpx2path = HelperFunctions::getGPXTrackPoints(std::string(PROJECT_SOURCE_DIR) + "/testdata/Daten/230305-30_matched_auto.gpx");
+        Path gpx1path = HelperFunctions::getGPXTrackPoints(std::string(PROJECT_SOURCE_DIR) + "/testdata/Daten/230305-30_matched_hand.gpx")[0];
+        Path gpx2path = HelperFunctions::getGPXTrackPoints(std::string(PROJECT_SOURCE_DIR) + "/testdata/Daten/230305-30_matched_auto.gpx")[0];
 
         auto edgeSet1 = routeHandler.getEdgeSet(gpx1path);
         auto edgeSet2 = routeHandler.getEdgeSet(gpx2path);

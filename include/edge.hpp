@@ -8,17 +8,13 @@
 #include <coordinates.hpp>
 #include <memory>
 
-#include <parameters.hpp>
-
-struct Tags
-{
-    Parameters::RoadClass highway = Parameters::RoadClass::Unknown;
-};
+#include "parameters.hpp"
+#include "tags.hpp"
 
 class Edge
 {
     public:
-        Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path);
+        Edge(uint64_t id, double waylength, std::shared_ptr<Node> from, std::shared_ptr<Node> to, std::vector<Coordinates> path, Tags tags);
 
         double getWeight() const { return mWaylength; }
         void setWeight(double waylength) { mWaylength = waylength; }
@@ -37,7 +33,7 @@ class Edge
         uint16_t snapPointCounter = 0;
         uint16_t bestSnapPointCounter = 0;
 
-        Tags mTags;
+        Tags tags;
 
         bool operator<(const Edge& other) const { return mId < other.mId; }
         bool operator==(const Edge& other) const { return mId == other.mId; }
