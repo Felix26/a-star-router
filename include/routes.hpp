@@ -11,6 +11,7 @@ class Routes
         Routes(Router &router) : mRouter(router) {}
 
         std::vector<Edge *> getEdgeSet(const std::vector<Coordinates> &coordinates);
+        void prepareEdgeSet(std::vector<Edge *> &edges);
 
         double getJaccardCoefficient(const std::vector<Edge *> &edges1, const std::vector<Edge *> &edges2);
 

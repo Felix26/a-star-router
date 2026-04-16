@@ -8,6 +8,7 @@ std::vector<Edge *> Routes::getEdgeSet(const std::vector<Coordinates> &coordinat
 {
     std::vector<uint64_t> routingIds;
     std::vector<Edge *> edges;
+    std::vector<Edge *> modifiedEdges;
 
     for(auto coords : coordinates)
     {
@@ -17,20 +18,40 @@ std::vector<Edge *> Routes::getEdgeSet(const std::vector<Coordinates> &coordinat
         double distanceFrom = HelperFunctions::haversine(coords, edge->from()->getCoordinates());
         double distanceTo = HelperFunctions::haversine(coords, edge->to()->getCoordinates());
 
-        if(std::min(distanceFrom, distanceTo) < 2) routingIds.emplace_back(distanceFrom < distanceTo ? edge->from()->getId() : edge->to()->getId());
-        else edge->setWeight(edge->getWeight() / NO_EDGE_SNAP_PENALTY);
-    }
+        if(std::min(distanceFrom, distanceTo) < 2)
+        {
+            routingIds.emplace_back(distanceFrom < distanceTo ? edge->from()->getId() : edge->to()->getId());
+            
+            if(routingIds.size() > 1)
+            {
+                const auto &path = mRouter.aStarEdges(routingIds[routingIds.size() - 2], routingIds[routingIds.size() - 1]);
+                edges.insert(edges.end(), path.begin(), path.end());
 
-    for(uint32_t i = 0; i < routingIds.size() - 1; i++)
-    {
-        const auto &path = mRouter.aStarEdges(routingIds[i], routingIds[i + 1]);
-        edges.insert(edges.end(), path.begin(), path.end());
+                for(const auto edge : modifiedEdges)
+                {
+                    edge->setWeight(edge->calculateWayLength());
+                }
+                modifiedEdges.clear();
+            }
+        }
+        else
+        {
+            edge->setWeight(edge->getWeight() / NO_EDGE_SNAP_PENALTY);
+            modifiedEdges.emplace_back(edge);
+        }
     }
 
     // emplace first and last edge because they are not included in the routing process
     edges.push_back(mRouter.getQuadtree().getClosestEdges(coordinates[0])[0].edge);
     edges.push_back(mRouter.getQuadtree().getClosestEdges(coordinates[coordinates.size() - 1])[0].edge);
 
+    prepareEdgeSet(edges);
+
+    return edges;
+}
+
+void Routes::prepareEdgeSet(std::vector<Edge *> &edges)
+{
     std::sort(edges.begin(), edges.end(), [](const Edge* a, const Edge* b)
     {
         return a->getId() < b->getId();
@@ -41,13 +62,6 @@ std::vector<Edge *> Routes::getEdgeSet(const std::vector<Coordinates> &coordinat
     {
         return a->getId() == b->getId();
     }), edges.end());
-
-    for(const auto edge : edges)
-    {
-        edge->setWeight(edge->calculateWayLength());
-    }
-
-    return edges;
 }
 
 double Routes::getJaccardCoefficient(const std::vector<Edge *> &edges1, const std::vector<Edge *> &edges2)

@@ -422,11 +422,15 @@ namespace HelperFunctions
         {
             std::vector<Coordinates> trackPoints;
             
-            auto trkseg = doc.child("gpx").child("trk").child("trkseg");
+            pugi::xpath_node_set trkpts = doc.select_nodes("//trkpt");
             
-            for(pugi::xml_node trackpoint : trkseg.children("trkpt"))
+            for(pugi::xpath_node node : trkpts)
             {
-                Coordinates point(trackpoint.attribute("lat").as_double(), trackpoint.attribute("lon").as_double());
+                pugi::xml_node trackpoint = node.node();
+                Coordinates point(
+                    trackpoint.attribute("lat").as_double(), 
+                    trackpoint.attribute("lon").as_double()
+                );
                 trackPoints.emplace_back(point);
             }
 
