@@ -16,6 +16,7 @@ class Router
 
         Graph &getGraph() { return *mGraph; }
         Quadtree &getQuadtree() { return *mQuadtree; }
+        Weights &getWeights() { return *mWeights; }
 
         std::vector<std::tuple<uint64_t, Coordinates>> aStar(uint64_t startId, uint64_t goalId, uint8_t snapToRoads = 0, bool useWeighting = false);
         

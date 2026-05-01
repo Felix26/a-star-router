@@ -11,6 +11,12 @@ class Weights
         Weights(const std::string &weightsCSVFile);
 
         double getWeight(const Parameters &parameters);
+        double getWeight(const std::string &key, const std::string &value);
+
+        void setWeight(const std::string &key, const std::string &value, double weight)
+        {
+            mWeights[key][value] = weight;
+        }
 
     private:
         // a map of parameter types, e.g. "highway", to a map of parameter values, e.g. "primary", to their corresponding weights

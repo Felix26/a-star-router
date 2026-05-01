@@ -33,11 +33,11 @@ double Weights::getWeight(const Parameters &parameters)
 
     for(const auto &[key, value] : parameters.getParameters())
     {
+        weightCount++;
         auto keyWeights = getKeyWeights(key);
         if(keyWeights.empty())
         {
             weight += fallbackWeight; // Default weight for unknown parameter keys
-            weightCount++;
             continue;
         }
 
@@ -52,12 +52,10 @@ double Weights::getWeight(const Parameters &parameters)
             if(defaultWeight != keyWeights.end())
             {
                 weight += defaultWeight->second; // Default weight for unknown parameter values
-                weightCount++;
             }
             else
             {
                 weight += fallbackWeight; // Fallback default weight if no "default" value is defined
-                weightCount++;
             }
         }
     }
@@ -73,4 +71,31 @@ std::unordered_map<std::string, double> Weights::getKeyWeights(const std::string
         return it->second;
     }
     return {};
+}
+
+double Weights::getWeight(const std::string &key, const std::string &value)
+{
+    auto keyWeights = getKeyWeights(key);
+    if(keyWeights.empty())
+    {
+        return 2.0; // Default weight for unknown parameter keys
+    }
+
+    auto it = keyWeights.find(value);
+    if(it != keyWeights.end())
+    {
+        return it->second;
+    }
+    else
+    {
+        auto defaultWeight = keyWeights.find("default");
+        if(defaultWeight != keyWeights.end())
+        {
+            return defaultWeight->second; // Default weight for unknown parameter values
+        }
+        else
+        {
+            return 2.0; // Fallback default weight if no "default" value is defined
+        }
+    }
 }
