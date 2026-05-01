@@ -16,6 +16,7 @@
 #include "graph.hpp"
 #include "osmnode.hpp"
 #include "osmway.hpp"
+#include "parameters.hpp"
 
 namespace HelperFunctions
 {
@@ -100,7 +101,7 @@ namespace HelperFunctions
 
             bool isHighway = false;
             std::vector<uint64_t> nodeRefs;
-            std::string highwayTag;
+            Parameters wayParameters;
 
             if (!xmlTextReaderIsEmptyElement(reader))
             {
@@ -121,7 +122,8 @@ namespace HelperFunctions
                             if (getAttributeValue(reader, "k") == "highway")
                             {
                                 isHighway = true;
-                                highwayTag = getAttributeValue(reader, "v");
+                                std::string highwayTag = getAttributeValue(reader, "v");
+                                wayParameters.setParameter("highway", highwayTag);
                             }
                         }
                         else if (xmlStrcmp(childName, BAD_CAST "nd") == 0)
@@ -179,6 +181,8 @@ namespace HelperFunctions
             {
                 return;
             }
+
+            way->setParameters(wayParameters);
 
             way->getNodes().front()->isEdge = true;
             way->getNodes().back()->isEdge = true;

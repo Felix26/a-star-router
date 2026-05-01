@@ -15,7 +15,7 @@ class Routes
 
         double getJaccardCoefficient(const std::vector<Edge *> &edges1, const std::vector<Edge *> &edges2);
 
-        std::vector<double> getHighwayTags(const std::vector<Edge *> &edges);
+        std::unordered_map<std::string, std::unordered_map<std::string, double>> getParameterLengthMap(const std::vector<Edge *> &edges);
 
     private:
         Router &mRouter;

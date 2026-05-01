@@ -8,7 +8,7 @@
 class Weights
 {
     public:
-        Weights(std::string &weightsCSVFile);
+        Weights(const std::string &weightsCSVFile);
 
         double getWeight(const Parameters &parameters);
 

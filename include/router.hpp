@@ -5,13 +5,14 @@
 
 #include "graph.hpp"
 #include "quadtree.hpp"
+#include "weights.hpp"
 
 #define NO_EDGE_SNAP_PENALTY 1000
 
 class Router
 {
     public:
-        Router(const std::string &osmFile);
+        Router(const std::string &osmFile, const std::string &weightCSVFile = "");
 
         Graph &getGraph() { return *mGraph; }
         Quadtree &getQuadtree() { return *mQuadtree; }
@@ -32,6 +33,7 @@ class Router
     private:
         std::unique_ptr<Graph> mGraph;
         std::unique_ptr<Quadtree> mQuadtree;
+        std::unique_ptr<Weights> mWeights;
         
         static double heuristic(const Node &a, const Node &b);
         void aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads = 0, bool useWeighting = false);

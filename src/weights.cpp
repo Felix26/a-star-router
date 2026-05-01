@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-Weights::Weights(std::string &weightsCSVFile)
+Weights::Weights(const std::string &weightsCSVFile)
 {
     std::ifstream file(weightsCSVFile);
     if (!file.is_open())
@@ -27,38 +27,42 @@ Weights::Weights(std::string &weightsCSVFile)
 
 double Weights::getWeight(const Parameters &parameters)
 {
-    double weight = 1.0;
-    constexpr double defaultPenalty = 2.0;
+    double weight = 0.0;
+    constexpr double fallbackWeight = 2.0;
+    size_t weightCount = 0;
 
     for(const auto &[key, value] : parameters.getParameters())
     {
         auto keyWeights = getKeyWeights(key);
         if(keyWeights.empty())
         {
-            weight *= defaultPenalty; // Default penalty for unknown parameter keys
+            weight += fallbackWeight; // Default weight for unknown parameter keys
+            weightCount++;
             continue;
         }
 
         auto it = keyWeights.find(value);
         if(it != keyWeights.end())
         {
-            weight *= it->second;
+            weight += it->second;
         }
         else
         {
             auto defaultWeight = keyWeights.find("default");
             if(defaultWeight != keyWeights.end())
             {
-                weight *= defaultWeight->second; // Default penalty for unknown parameter values
+                weight += defaultWeight->second; // Default weight for unknown parameter values
+                weightCount++;
             }
             else
             {
-                weight *= defaultPenalty; // Fallback default penalty if no "default" value is defined
+                weight += fallbackWeight; // Fallback default weight if no "default" value is defined
+                weightCount++;
             }
         }
     }
 
-    return weight;
+    return weight / (weightCount > 0 ? weightCount : 1);
 }
 
 std::unordered_map<std::string, double> Weights::getKeyWeights(const std::string &key)

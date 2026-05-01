@@ -17,6 +17,8 @@ class Edge
 
         double getWeight() const { return mWaylength; }
         void setWeight(double waylength) { mWaylength = waylength; }
+        void setParameters(const Parameters &parameters) { mParameters = parameters; }
+        Parameters &getParameters() { return mParameters; }
 
         double calculateWayLength() const;
 
@@ -39,6 +41,6 @@ class Edge
         uint64_t mId;
         double mWaylength;
         std::array<std::weak_ptr<Node>, 2> mNodes;
-
+        Parameters mParameters;
         std::vector<Coordinates> mPath;
 };

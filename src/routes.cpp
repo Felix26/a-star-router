@@ -126,3 +126,21 @@ double Routes::getJaccardCoefficient(const std::vector<Edge *> &edges1, const st
     return intersectionLength / unionLength;
 }
 
+std::unordered_map<std::string, std::unordered_map<std::string, double>> Routes::getParameterLengthMap(const std::vector<Edge *> &edges)
+{
+    std::unordered_map<std::string, std::unordered_map<std::string, double>> parameterLengthMap;
+
+    for(const auto edge : edges)
+    {
+        const auto &parameters = edge->getParameters().getParameters();
+        double edgeLength = edge->getWeight();
+
+        for(const auto &[key, value] : parameters)
+        {
+            std::string parameterKeyValue = key + "=" + value;
+            parameterLengthMap[key][value] += edgeLength;
+        }
+    }
+
+    return parameterLengthMap;
+}

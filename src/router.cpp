@@ -6,13 +6,16 @@
 #include "library.hpp"
 #include "weights.hpp"
 
-Router::Router(const std::string &osmFile)
+Router::Router(const std::string &osmFile, const std::string &weightCSVFile)
 {
     ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> nodes;
     ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> ways;
 
     mGraph = std::make_unique<Graph>();
-
+    if(!weightCSVFile.empty())
+    {
+        mWeights = std::make_unique<Weights>(weightCSVFile);
+    }
     HelperFunctions::readOSMFile(osmFile, nodes, ways);
     Box boundary = HelperFunctions::createGraph(*mGraph, nodes, ways);
 
@@ -102,6 +105,11 @@ std::vector<Edge *> Router::aStarEdges(uint64_t startId, uint64_t goalId, bool u
 
 void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads, bool useWeighting)
 {
+    if(useWeighting && !mWeights)
+    {
+        std::cerr << "Weighting enabled but no weights provided. Please provide a weight CSV file when initializing the Router.\n";
+        useWeighting = false;
+    }
     currentEpoch++;
 
     auto prepareNode = [&](std::shared_ptr<Node>& node)
@@ -162,7 +170,7 @@ void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoa
             if (neighbor->visited)
                 continue;
 
-            double tentativeG = current->g + edge->getWeight();
+            double tentativeG = current->g + edge->getWeight() + edge->getWeight() * (useWeighting ? mWeights->getWeight(edge->getParameters()) : 0.0);
             if (tentativeG < neighbor->g)
             {
                 neighbor->parent = currentId;

@@ -47,6 +47,7 @@ void Graph::addOsmWay(const OsmWay *way)
             uint64_t wayId = way->getId() | (subWayId++ << 56);
 
             mEdges.emplace(wayId, std::make_shared<Edge>(wayId, waylength, fromNode, toNode, path));
+            mEdges.at(wayId)->setParameters(way->getParameters());
             fromNode->edges.push_back(mEdges.at(wayId));
             toNode->edges.push_back(mEdges.at(wayId));
 
