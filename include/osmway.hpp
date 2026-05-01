@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "osmnode.hpp"
-#include "tags.hpp"
 
 class OsmWay
 {
@@ -17,8 +16,6 @@ class OsmWay
         const std::vector<std::shared_ptr<OsmNode>> &getNodes() const { return mNodes; }
 
         const uint64_t getId() const {return mId;}
-
-        Tags tags;
 
     private:
         uint64_t mId;

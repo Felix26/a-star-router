@@ -46,7 +46,7 @@ void Graph::addOsmWay(const OsmWay *way)
             // First sub-way gets to keep original ID; subsequent IDs use 8 bits for sub-way index, 56 bits for way ID are copied
             uint64_t wayId = way->getId() | (subWayId++ << 56);
 
-            mEdges.emplace(wayId, std::make_shared<Edge>(wayId, waylength, fromNode, toNode, path, way->tags));
+            mEdges.emplace(wayId, std::make_shared<Edge>(wayId, waylength, fromNode, toNode, path));
             fromNode->edges.push_back(mEdges.at(wayId));
             toNode->edges.push_back(mEdges.at(wayId));
 
@@ -75,7 +75,7 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     double waylength1 = waylength1percentage * edge->getWeight();
 
     uint64_t edgeId1 = edgeId | ((uint64_t)++mSplitItemCount << 60); // New sub-way ID
-    auto edge1 = std::make_shared<Edge>(edgeId1, waylength1, edge->from(), newNode, path1, edge->tags);
+    auto edge1 = std::make_shared<Edge>(edgeId1, waylength1, edge->from(), newNode, path1);
     mEdges.emplace(edgeId1, edge1);
     mSplitItemIds.push_back(edgeId1);
 
@@ -90,7 +90,7 @@ uint64_t Graph::addSplit(Coordinates closestCoords, uint64_t edgeId, uint8_t seg
     double waylength2 = waylength2percentage * edge->getWeight();
 
     uint64_t edgeId2 = edgeId | ((uint64_t)++mSplitItemCount << 60); // New sub-way ID
-    auto edge2 = std::make_shared<Edge>(edgeId2, waylength2, newNode, edge->to(), path2, edge->tags);
+    auto edge2 = std::make_shared<Edge>(edgeId2, waylength2, newNode, edge->to(), path2);
     mEdges.emplace(edgeId2, edge2);
     mSplitItemIds.push_back(edgeId2);
     

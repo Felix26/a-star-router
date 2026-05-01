@@ -1,45 +1,20 @@
 #pragma once
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
+#include <unordered_map>
+#include <string>
 
-#include "tags.hpp"
 #include "parameters.hpp"
 
-class HighwayWeights
+class Weights
 {
     public:
-        static double getHighwayPenalty(Tags &tags);
-        static double getHighwayPenalty(size_t index);
+        Weights(std::string &weightsCSVFile);
+
+        double getWeight(const Parameters &parameters);
 
     private:
-        static const inline std::array<double, Parameters::highwayParameterCount> penalties = []()
-        {
-            std::array<double, Parameters::highwayParameterCount> arr;
-            arr.fill(1.0);
+        // a map of parameter types, e.g. "highway", to a map of parameter values, e.g. "primary", to their corresponding weights
+        std::unordered_map<std::string, std::unordered_map<std::string, double>> mWeights;
 
-            std::ifstream highwayProfile("highwayProfile.csv");
-
-            if(!highwayProfile.is_open())
-            {
-                std::cerr << "Profil nicht geladen, nutze Fallback" << std::endl;
-            }
-
-            std::string line;
-            while(std::getline(highwayProfile, line))
-            {
-                if(line.empty() || line[0] == '#') continue;
-
-                std::stringstream ss(line);
-                std::string tag, weightString;
-
-                if(std::getline(ss, tag, ',') && std::getline(ss, weightString))
-                {
-                    arr[static_cast<size_t>(Parameters::getHighwayTagID(tag))] = std::stod(weightString);
-                }
-            }
-
-            return arr;
-        }();
+        std::unordered_map<std::string, double> getKeyWeights(const std::string &key);
 };

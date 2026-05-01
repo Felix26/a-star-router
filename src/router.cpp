@@ -162,8 +162,7 @@ void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoa
             if (neighbor->visited)
                 continue;
 
-            double tentativeG = current->g + edge->getWeight() * (useWeighting ? HighwayWeights::getHighwayPenalty(edge->tags) : 1);
-
+            double tentativeG = current->g + edge->getWeight();
             if (tentativeG < neighbor->g)
             {
                 neighbor->parent = currentId;

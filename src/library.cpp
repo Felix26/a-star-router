@@ -180,8 +180,6 @@ namespace HelperFunctions
                 return;
             }
 
-            way->tags.highway = Parameters::getHighwayTagID(highwayTag);
-
             way->getNodes().front()->isEdge = true;
             way->getNodes().back()->isEdge = true;
 

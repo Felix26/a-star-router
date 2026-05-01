@@ -126,14 +126,3 @@ double Routes::getJaccardCoefficient(const std::vector<Edge *> &edges1, const st
     return intersectionLength / unionLength;
 }
 
-std::vector<double> Routes::getHighwayTags(const std::vector<Edge *> &edges)
-{
-    std::vector<double> results(Parameters::highwayParameterCount, 0);
-
-    for (Edge* edge : edges)
-    {
-        results[static_cast<size_t>(edge->tags.highway)] += edge->getWeight(); 
-    }
-
-    return results;
-}
