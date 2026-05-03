@@ -97,6 +97,8 @@ int main()
         }
 
         std::vector<std::tuple<std::string, std::string, double>> tagsDifferenceVector;
+        double lengthMatched = 0;
+        double lengthGuessed = 0;
         double costMatched = 0;
         double costGuessed = 0;
 
@@ -105,6 +107,7 @@ int main()
             for(const auto &[value, length] : valueMap)
             {
                 double tagsGuessedLength = 0;
+                double tagCost = router.getWeights().getWeight(key, value);
                 if(tagsGuessed[key].find(value) != tagsGuessed[key].end())
                 {
                     tagsGuessedLength = tagsGuessed[key][value];
@@ -113,23 +116,29 @@ int main()
                 std::cout << std::format("{}: {:20} {:6.1f} {:6.1f}\n", key, value, length / 1000, tagsGuessedLength / 1000);
                 tagsDifferenceVector.emplace_back(key, value, length - tagsGuessedLength);
 
-                costMatched += length;
-                costGuessed += tagsGuessedLength;
+                lengthMatched += length;
+                lengthGuessed += tagsGuessedLength;
+                costMatched += length + length * tagCost;
+                costGuessed += tagsGuessedLength + tagsGuessedLength * tagCost;
+
             }
             for(const auto &[value, length] : tagsGuessed[key])
             {
                 std::cout << std::format("{}: {:20} {:6.1f} {:6.1f}\n", key, value, 0.0, length / 1000);
                 tagsDifferenceVector.emplace_back(key, value, -length);
-                costGuessed += length;
+                lengthGuessed += length;
+                costGuessed += length + length * router.getWeights().getWeight(key, value);
             }
         }
 
         std::cout << std::format("mean jaccard: {:4}\n", jaccardSum / jaccardCount);
 
+        double lengthDifference = lengthMatched - lengthGuessed;
         double costDifference = costMatched - costGuessed;
-        std::cout << std::format("cost matched: {:6.1f} km\n", costMatched / 1000);
-        std::cout << std::format("cost guessed: {:6.1f} km\n", costGuessed / 1000);
-        std::cout << std::format("cost difference: {:6.1f} km\n", costDifference / 1000);
+        std::cout << std::format("length matched: {:6.1f} km, cost: {:6.1f} \n", lengthMatched / 1000, costMatched / 1000);
+        std::cout << std::format("length guessed: {:6.1f} km, cost: {:6.1f} \n", lengthGuessed / 1000, costGuessed / 1000);
+        std::cout << std::format("length difference: {:6.1f} km\n", lengthDifference / 1000);
+        std::cout << std::format("cost difference: {:6.1f} \n", costDifference / 1000);
 
         double norm = 0;
         for(auto &[key, value, difference] : tagsDifferenceVector)

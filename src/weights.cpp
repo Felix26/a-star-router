@@ -28,7 +28,7 @@ Weights::Weights(const std::string &weightsCSVFile)
 double Weights::getWeight(const Parameters &parameters)
 {
     double weight = 0.0;
-    constexpr double fallbackWeight = 2.0;
+    constexpr double fallbackWeight = 1.0;
     size_t weightCount = 0;
 
     for(const auto &[key, value] : parameters.getParameters())
@@ -78,7 +78,7 @@ double Weights::getWeight(const std::string &key, const std::string &value)
     auto keyWeights = getKeyWeights(key);
     if(keyWeights.empty())
     {
-        return 2.0; // Default weight for unknown parameter keys
+        return 1.0; // Default weight for unknown parameter keys
     }
 
     auto it = keyWeights.find(value);
@@ -95,7 +95,7 @@ double Weights::getWeight(const std::string &key, const std::string &value)
         }
         else
         {
-            return 2.0; // Fallback default weight if no "default" value is defined
+            return 1.0; // Fallback default weight if no "default" value is defined
         }
     }
 }
