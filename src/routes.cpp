@@ -137,7 +137,6 @@ std::unordered_map<std::string, std::unordered_map<std::string, double>> Routes:
 
         for(const auto &[key, value] : parameters)
         {
-            std::string parameterKeyValue = key + "=" + value;
             parameterLengthMap[key][value] += edgeLength;
         }
     }

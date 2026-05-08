@@ -16,7 +16,7 @@
 #include "weights.hpp"
 #include "parameters.hpp"
 
-#define DISTANCE 2
+#define DISTANCE 10
 
 // Struktur zum Cachen der unveränderlichen Map-Matching-Daten pro Track
 struct CachedTrack {
@@ -50,6 +50,8 @@ int main()
         for(auto &[filename, points] : parser.getTracks())
         {
             if(!router.getQuadtree().getBoundary().contains(points[0])) continue;
+
+            std::cout << "Matching " << filename << std::endl;
             
             std::vector<std::tuple<uint64_t, Coordinates>> matchedTrack = parser.mapMatching(router, points);
             
@@ -87,6 +89,9 @@ int main()
         // ---------------------------------------------------------
         const int EPOCHS = 250; 
         const double LEARNING_RATE = 0.05; // Hyperparameter für kleinere, stabilere Schritte
+
+        std::ofstream epochs(std::format("all_d{}s{}init0.2.csv", DISTANCE, static_cast<int>(LEARNING_RATE * 100)));
+        epochs << "epoche;kostendifferenz;längendifferenz;mean_jaccard\n";
 
         for (int epoch = 1; epoch <= EPOCHS; ++epoch)
         {
@@ -174,6 +179,16 @@ int main()
             std::cout << std::format("Mean Jaccard: {:.4f} | Cost Diff: {:6.1f} | Length Diff: {:6.1f} km\n", 
                                      meanJaccard, costDifference / 1000, (lengthMatched - lengthGuessed) / 1000);
 
+            std::string line = std::format("{};{:.1f};{:.1f};{:.4f}\n", 
+                               epoch, // oder wie auch immer deine Epochen-Variable heißt
+                               costDifference / 1000, 
+                               (lengthMatched - lengthGuessed) / 1000,
+                               meanJaccard);
+
+            // 3. Punkte durch Kommas ersetzen (für deutsches Excel/CSV-Format)
+            std::replace(line.begin(), line.end(), '.', ',');
+            epochs << line;
+
             // 3. Gradientenabstieg & Gewichte anpassen
             double norm = 0;
             for(auto &[key, value, difference] : tagsDifferenceVector) {
@@ -187,6 +202,10 @@ int main()
 
             for(auto &[key, value, difference] : tagsDifferenceVector)
             {
+                if(value == "unknown")
+                {
+                    continue;
+                }
                 // Gradient berechnen
                 double normedgradient = (norm > 0) ? (difference / norm * costDifference) : 0;
                 
@@ -207,6 +226,8 @@ int main()
             file.close();
             std::cout << "Gewichte in " << logPath << " gespeichert.\n\n";
         }
+
+        epochs.close();
     }
     catch (const std::exception &e)
     {

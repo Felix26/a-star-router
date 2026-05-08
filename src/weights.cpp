@@ -27,8 +27,12 @@ Weights::Weights(const std::string &weightsCSVFile)
 
 double Weights::getWeight(const Parameters &parameters)
 {
+    if(parameters.getParameters().empty())
+    {
+        return fallbackWeight;
+    }
+
     double weight = 0.0;
-    constexpr double fallbackWeight = 1.0;
     size_t weightCount = 0;
 
     for(const auto &[key, value] : parameters.getParameters())
@@ -60,7 +64,7 @@ double Weights::getWeight(const Parameters &parameters)
         }
     }
 
-    return weight / (weightCount > 0 ? weightCount : 1);
+    return weight;
 }
 
 std::unordered_map<std::string, double> Weights::getKeyWeights(const std::string &key)
@@ -78,7 +82,7 @@ double Weights::getWeight(const std::string &key, const std::string &value)
     auto keyWeights = getKeyWeights(key);
     if(keyWeights.empty())
     {
-        return 1.0; // Default weight for unknown parameter keys
+        return fallbackWeight; // Default weight for unknown parameter keys
     }
 
     auto it = keyWeights.find(value);
@@ -95,7 +99,7 @@ double Weights::getWeight(const std::string &key, const std::string &value)
         }
         else
         {
-            return 1.0; // Fallback default weight if no "default" value is defined
+            return fallbackWeight; // Fallback default weight if no "default" value is defined
         }
     }
 }

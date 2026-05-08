@@ -103,6 +103,12 @@ namespace HelperFunctions
             std::vector<uint64_t> nodeRefs;
             Parameters wayParameters;
 
+            // wayParameters.setParameter("lit", "unknown");
+            // wayParameters.setParameter("maxspeed", "unknown");
+            // wayParameters.setParameter("tracktype", "unknown");
+            // wayParameters.setParameter("surface", "unknown");
+            // wayParameters.setParameter("smoothness", "unknown");
+
             if (!xmlTextReaderIsEmptyElement(reader))
             {
                 const int baseDepth = xmlTextReaderDepth(reader);
@@ -125,6 +131,31 @@ namespace HelperFunctions
                                 std::string highwayTag = getAttributeValue(reader, "v");
                                 wayParameters.setParameter("highway", highwayTag);
                             }
+                            // if (getAttributeValue(reader, "k") == "lit")
+                            // {
+                            //     std::string litTag = getAttributeValue(reader, "v");
+                            //     wayParameters.setParameter("lit", litTag);
+                            // }
+                            // if (getAttributeValue(reader, "k") == "maxspeed")
+                            // {
+                            //     std::string maxspeedTag = getAttributeValue(reader, "v");
+                            //     wayParameters.setParameter("maxspeed", maxspeedTag);
+                            // }
+                            // if (getAttributeValue(reader, "k") == "surface")
+                            // {
+                            //     std::string surfaceTag = getAttributeValue(reader, "v");
+                            //     wayParameters.setParameter("surface", surfaceTag);
+                            // }
+                            // if (getAttributeValue(reader, "k") == "tracktype")
+                            // {
+                            //     std::string tracktypeTag = getAttributeValue(reader, "v");
+                            //     wayParameters.setParameter("tracktype", tracktypeTag);
+                            // }
+                            // if (getAttributeValue(reader, "k") == "smoothness")
+                            // {
+                            //     std::string smoothnessTag = getAttributeValue(reader, "v");
+                            //     wayParameters.setParameter("smoothness", smoothnessTag);
+                            // }
                         }
                         else if (xmlStrcmp(childName, BAD_CAST "nd") == 0)
                         {

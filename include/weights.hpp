@@ -23,4 +23,7 @@ class Weights
         std::unordered_map<std::string, std::unordered_map<std::string, double>> mWeights;
 
         std::unordered_map<std::string, double> getKeyWeights(const std::string &key);
+
+        
+        static constexpr double fallbackWeight = 0.2;
 };
