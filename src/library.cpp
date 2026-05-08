@@ -106,7 +106,7 @@ namespace HelperFunctions
             // wayParameters.setParameter("lit", "unknown");
             // wayParameters.setParameter("maxspeed", "unknown");
             // wayParameters.setParameter("tracktype", "unknown");
-            // wayParameters.setParameter("surface", "unknown");
+            wayParameters.setParameter("surface", "unknown");
             // wayParameters.setParameter("smoothness", "unknown");
 
             if (!xmlTextReaderIsEmptyElement(reader))
@@ -141,11 +141,11 @@ namespace HelperFunctions
                             //     std::string maxspeedTag = getAttributeValue(reader, "v");
                             //     wayParameters.setParameter("maxspeed", maxspeedTag);
                             // }
-                            // if (getAttributeValue(reader, "k") == "surface")
-                            // {
-                            //     std::string surfaceTag = getAttributeValue(reader, "v");
-                            //     wayParameters.setParameter("surface", surfaceTag);
-                            // }
+                            if (getAttributeValue(reader, "k") == "surface")
+                            {
+                                std::string surfaceTag = getAttributeValue(reader, "v");
+                                wayParameters.setParameter("surface", surfaceTag);
+                            }
                             // if (getAttributeValue(reader, "k") == "tracktype")
                             // {
                             //     std::string tracktypeTag = getAttributeValue(reader, "v");
@@ -212,6 +212,8 @@ namespace HelperFunctions
             {
                 return;
             }
+
+            wayParameters.setParameter("combination", wayParameters.getParameter("highway") + "|" + wayParameters.getParameter("surface"));
 
             way->setParameters(wayParameters);
 

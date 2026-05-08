@@ -196,7 +196,7 @@ int main()
             }
 
             // Log-Datei für diese Epoche öffnen
-            std::string logPath = std::format("logs/weights_epoch_{:03d}.csv", epoch);
+            std::string logPath = std::format("logs2/weights_epoch_{:03d}.csv", epoch);
             std::ofstream file(logPath);
             file << "#parameter,weight\n";
 
@@ -206,15 +206,24 @@ int main()
                 {
                     continue;
                 }
+                if(key != "combination")
+                {
+                    continue;
+                }
                 // Gradient berechnen
                 double normedgradient = (norm > 0) ? (difference / norm * costDifference) : 0;
                 
                 double currentWeight = router.getWeights().getWeight(key, value);
+
+                std::string highwayValue = value.substr(0, value.find("|"));
+                std::string surfaceValue = value.substr(value.find("|") + 1);
+
+                double minimumNegativeWeight = router.getWeights().getWeight("highway", highwayValue) + router.getWeights().getWeight("surface", surfaceValue);
                 
                 // Standard Machine Learning Update-Regel: w_neu = w_alt - (learning_rate * gradient)
                 // Bei deinem vorherigen Code hast du die Lernrate weggelassen (=1.0). 
                 // Ein Faktor entschärft Oszillationen.
-                double newWeight = std::max(0.0, currentWeight - (LEARNING_RATE * normedgradient));
+                double newWeight = std::max(-minimumNegativeWeight, currentWeight - (LEARNING_RATE * normedgradient));
                 
                 // --- WICHTIG: Gewicht im RAM updaten! ---
                 // Du benötigst vermutlich eine Setter-Funktion in deiner Weights-Klasse.
