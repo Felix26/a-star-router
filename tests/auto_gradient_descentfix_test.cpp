@@ -206,10 +206,6 @@ int main()
                 {
                     continue;
                 }
-                if(key != "combination")
-                {
-                    continue;
-                }
                 // Gradient berechnen
                 double normedgradient = (norm > 0) ? (difference / norm * costDifference) : 0;
                 
