@@ -28,6 +28,7 @@ int main()
 
         assert(std::abs(coefficientIdentical - 1) < 0.0001);
         assert(std::abs(coefficientDifferent - 1) > 0.0001);
+        std::cout << coefficientDifferent << std::endl;
     }
     catch (const std::exception &e)
     {

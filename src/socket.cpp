@@ -210,11 +210,11 @@ void RouterServer::handleClient(int clientFd)
         {
             Coordinates startCoords(startLat, startLon);
             Coordinates goalCoords(goalLat, goalLon);
-            path = mRouter.aStar(startCoords, goalCoords);
+            path = mRouter.aStar(startCoords, goalCoords, 0, true);
         }
         else
         {
-            path = mRouter.aStar(startId, goalId);
+            path = mRouter.aStar(startId, goalId, 0, true);
         }
 
         if (path.empty())

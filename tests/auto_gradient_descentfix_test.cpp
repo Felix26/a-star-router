@@ -30,6 +30,18 @@ struct CachedTrack {
     std::unordered_map<std::string, std::unordered_map<std::string, double>> tagsMatched;
 };
 
+double getEdgeSetLength(const std::vector<Edge *> &edgeSet)
+{
+    double result = 0;
+
+    for(const auto edge : edgeSet)
+    {
+        result += edge->getWeight();
+    }
+
+    return result;
+}
+
 int main()
 {
     try
@@ -104,6 +116,9 @@ int main()
             std::unordered_map<std::string, std::unordered_map<std::string, double>> globalTagsMatched;
             std::unordered_map<std::string, std::unordered_map<std::string, double>> globalTagsGuessed;
 
+            double lengthMatched = 0;
+            double lengthGuessed = 0;
+
             // 1. A* Routing mit AKTUELLEN Gewichten für alle Tracks
             for(const auto &track : trainingData)
             {
@@ -137,11 +152,13 @@ int main()
                         globalTagsGuessed[key][value] += length;
                     }
                 }
+
+                lengthMatched += getEdgeSetLength(track.matchSet);
+                lengthGuessed += getEdgeSetLength(edgeSet);
             }
 
             // 2. Kosten und Differenzen auswerten
             std::vector<std::tuple<std::string, std::string, double>> tagsDifferenceVector;
-            double lengthMatched = 0, lengthGuessed = 0;
             double costMatched = 0, costGuessed = 0;
 
             for(const auto &[key, valueMap] : globalTagsMatched)
@@ -157,23 +174,21 @@ int main()
                     }
                     
                     tagsDifferenceVector.emplace_back(key, value, length - tagsGuessedLength);
-
-                    lengthMatched += length;
-                    lengthGuessed += tagsGuessedLength;
-                    costMatched += length + (length * tagCost);
-                    costGuessed += tagsGuessedLength + (tagsGuessedLength * tagCost);
+                    costMatched += (length * tagCost);
+                    costGuessed += (tagsGuessedLength * tagCost);
                 }
                 
                 // Reste aus Guessed, die in Matched nicht vorkamen
                 for(const auto &[value, length] : globalTagsGuessed[key])
                 {
                     tagsDifferenceVector.emplace_back(key, value, -length);
-                    lengthGuessed += length;
-                    costGuessed += length + (length * router.getWeights().getWeight(key, value));
+                    costGuessed += (length * router.getWeights().getWeight(key, value));
                 }
             }
 
             double meanJaccard = (jaccardCount > 0) ? (jaccardSum / jaccardCount) : 0;
+            costMatched += lengthMatched;
+            costGuessed += lengthGuessed;
             double costDifference = costMatched - costGuessed;
 
             std::cout << std::format("Mean Jaccard: {:.4f} | Cost Diff: {:6.1f} | Length Diff: {:6.1f} km\n", 
@@ -206,6 +221,7 @@ int main()
                 {
                     continue;
                 }
+                if(key != "combination") continue;
                 // Gradient berechnen
                 double normedgradient = (norm > 0) ? (difference / norm * costDifference) : 0;
                 

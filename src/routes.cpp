@@ -50,6 +50,18 @@ std::vector<Edge *> Routes::getEdgeSet(const std::vector<Coordinates> &coordinat
     return edges;
 }
 
+std::vector<Edge *> Routes::getEdgeSet(const std::vector<std::tuple<uint64_t, Coordinates>> &coordinates)
+{
+    std::vector<Coordinates> routeCoords;
+
+    for(auto &[_, coords] : coordinates)
+    {
+        routeCoords.push_back(coords);
+    }
+
+    return getEdgeSet(routeCoords);
+}
+
 void Routes::prepareEdgeSet(std::vector<Edge *> &edges)
 {
     std::sort(edges.begin(), edges.end(), [](const Edge* a, const Edge* b)
@@ -58,10 +70,10 @@ void Routes::prepareEdgeSet(std::vector<Edge *> &edges)
     });
 
     
-    edges.erase(std::unique(edges.begin(), edges.end(), [](const Edge* a, const Edge* b)
+    /*edges.erase(std::unique(edges.begin(), edges.end(), [](const Edge* a, const Edge* b)
     {
         return a->getId() == b->getId();
-    }), edges.end());
+    }), edges.end());*/
 }
 
 double Routes::getJaccardCoefficient(const std::vector<Edge *> &edges1, const std::vector<Edge *> &edges2)

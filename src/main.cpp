@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        router = std::make_unique<Router>(argv[1]);
+        router = std::make_unique<Router>(argv[1], "weightsnew.csv");
     }
     catch (const std::exception &e)
     {

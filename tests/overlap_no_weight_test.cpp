@@ -10,14 +10,14 @@
 #include "routes.hpp"
 #include "library.hpp"
 
-#define DISTANCE 20
+#define DISTANCE 50
 
 int main()
 {
     try
     {
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
-        Router router(osmPath);
+        Router router(osmPath, "weightsnew.csv");
         GPXParser parser;
         Routes routes(router);
 
@@ -31,6 +31,7 @@ int main()
 
         for(auto &[filename, points] : parser.getTracks())
         {
+            if(filename != "230305-30.gpx") continue; 
             uint16_t decisionNodes = 0;
             std::vector<Edge *> edgeSet;
             Path coordinates;
@@ -52,7 +53,7 @@ int main()
 
             for(uint32_t i = 0; i < ids.size(); i += DISTANCE)
             {
-                auto result = router.aStarEdges(ids[i], ids[std::min<uint32_t>(i + DISTANCE, ids.size() - 1)]);
+                auto result = router.aStarEdges(ids[i], ids[std::min<uint32_t>(i + DISTANCE, ids.size() - 1)], true);
                 edgeSet.insert(edgeSet.end(), result.begin(), result.end());
             }
 
@@ -62,10 +63,10 @@ int main()
             
             auto matchSet = routes.getEdgeSet(coordinates);
 
-            if(filename == "240728-04.gpx") 
+            if(filename == "230305-30.gpx") 
             {
-                // HelperFunctions::saveEdgesAsGeoJSON(edgeSet);
-                // HelperFunctions::saveEdgesAsGeoJSON(matchSet);
+                HelperFunctions::saveEdgesAsGeoJSON(edgeSet);
+                HelperFunctions::saveEdgesAsGeoJSON(matchSet);
             }
 
             double jaccard = routes.getJaccardCoefficient(edgeSet, matchSet);
