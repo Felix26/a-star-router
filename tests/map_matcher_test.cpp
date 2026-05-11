@@ -52,7 +52,7 @@ int main()
 
         std::cout << std::format("{}, {}, {}, {}, {}\n", coefficient1, coefficient2, coefficient3, coefficient4, coefficient5);
 
-        HelperFunctions::saveEdgesAsGeoJSON(edgeSet3);
+        HelperFunctions::saveEdgesAsGeoJSON(edgeSet4);
     }
     catch (const std::exception &e)
     {
