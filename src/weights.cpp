@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <format>
 
 Weights::Weights(const std::string &weightsCSVFile)
 {
@@ -25,7 +26,7 @@ Weights::Weights(const std::string &weightsCSVFile)
     }
 }
 
-double Weights::getWeight(const Parameters &parameters)
+double Weights::getWeight(const Parameters &parameters) const
 {
     if(parameters.getParameters().empty())
     {
@@ -52,10 +53,9 @@ double Weights::getWeight(const Parameters &parameters)
         }
         else
         {
-            auto defaultWeight = keyWeights.find("default");
-            if(defaultWeight != keyWeights.end())
+            if(key.find("cross:") != std::string::npos)
             {
-                weight += defaultWeight->second; // Default weight for unknown parameter values
+                weight += 0;
             }
             else
             {
@@ -67,7 +67,22 @@ double Weights::getWeight(const Parameters &parameters)
     return weight;
 }
 
-std::unordered_map<std::string, double> Weights::getKeyWeights(const std::string &key)
+void Weights::saveWeights(const std::string &filename)
+{
+    std::ofstream file(filename);
+
+    for(const auto &[key, keymap] : mWeights)
+    {
+        for(const auto &[value, weight] : keymap)
+        {
+            file << std::format("{},{},{}\n", key, value, weight);
+        }
+    }
+
+    file.close();
+}
+
+ankerl::unordered_dense::map<std::string, double> Weights::getKeyWeights(const std::string &key) const
 {
     auto it = mWeights.find(key);
     if(it != mWeights.end())
@@ -77,7 +92,7 @@ std::unordered_map<std::string, double> Weights::getKeyWeights(const std::string
     return {};
 }
 
-double Weights::getWeight(const std::string &key, const std::string &value)
+double Weights::getWeight(const std::string &key, const std::string &value) const
 {
     auto keyWeights = getKeyWeights(key);
     if(keyWeights.empty())
@@ -92,10 +107,9 @@ double Weights::getWeight(const std::string &key, const std::string &value)
     }
     else
     {
-        auto defaultWeight = keyWeights.find("default");
-        if(defaultWeight != keyWeights.end())
+        if(key.find("cross:") != std::string::npos)
         {
-            return defaultWeight->second; // Default weight for unknown parameter values
+            return 0;
         }
         else
         {

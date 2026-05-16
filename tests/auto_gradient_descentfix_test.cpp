@@ -47,11 +47,13 @@ int main()
     try
     {
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
-        Router router(osmPath, "weightsnew.csv");
+        Router router(osmPath, "weights_empty.csv");
         GPXParser parser;
         Routes routes(router);
 
         parser.loadGPXFiles(std::string(PROJECT_SOURCE_DIR) + "/testdata/gpxdata");
+
+        std::string loggingPath = "jogging_highway_logs";
 
         // ---------------------------------------------------------
         // PHASE 1: PRE-COMPUTATION (Map-Matching cachen)
@@ -102,7 +104,7 @@ int main()
         const int EPOCHS = 250; 
         const double LEARNING_RATE = 0.05; // Hyperparameter für kleinere, stabilere Schritte
 
-        std::ofstream epochs(std::format("all_d{}s{}init0.2.csv", DISTANCE, static_cast<int>(LEARNING_RATE * 100)));
+        std::ofstream epochs(std::format("{}/{}.csv", loggingPath, loggingPath));
         epochs << "epoche;kostendifferenz;längendifferenz;mean_jaccard\n";
 
         for (int epoch = 1; epoch <= EPOCHS; ++epoch)
@@ -211,17 +213,10 @@ int main()
             }
 
             // Log-Datei für diese Epoche öffnen
-            std::string logPath = std::format("logs2/weights_epoch_{:03d}.csv", epoch);
-            std::ofstream file(logPath);
-            file << "#parameter,weight\n";
+            std::string logPath = std::format("{}/weights_epoch_{:03d}.csv", loggingPath, epoch);
 
             for(auto &[key, value, difference] : tagsDifferenceVector)
             {
-                if(value == "unknown")
-                {
-                    continue;
-                }
-                if(key != "combination") continue;
                 // Gradient berechnen
                 double normedgradient = (norm > 0) ? (difference / norm * costDifference) : 0;
                 
@@ -230,7 +225,8 @@ int main()
                 std::string highwayValue = value.substr(0, value.find("|"));
                 std::string surfaceValue = value.substr(value.find("|") + 1);
 
-                double minimumNegativeWeight = router.getWeights().getWeight("highway", highwayValue) + router.getWeights().getWeight("surface", surfaceValue);
+                //double minimumNegativeWeight = router.getWeights().getWeight("highway", highwayValue) + router.getWeights().getWeight("surface", surfaceValue);
+                constexpr double minimumNegativeWeight = 0;
                 
                 // Standard Machine Learning Update-Regel: w_neu = w_alt - (learning_rate * gradient)
                 // Bei deinem vorherigen Code hast du die Lernrate weggelassen (=1.0). 
@@ -240,11 +236,8 @@ int main()
                 // --- WICHTIG: Gewicht im RAM updaten! ---
                 // Du benötigst vermutlich eine Setter-Funktion in deiner Weights-Klasse.
                 router.getWeights().setWeight(key, value, newWeight);
-                
-                file << std::format("{},{},{}\n", key, value, newWeight);
             }
-            
-            file.close();
+            router.getWeights().saveWeights(logPath);
             std::cout << "Gewichte in " << logPath << " gespeichert.\n\n";
         }
 

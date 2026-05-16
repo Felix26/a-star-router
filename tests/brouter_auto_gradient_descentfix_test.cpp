@@ -16,12 +16,9 @@
 #include "weights.hpp"
 #include "parameters.hpp"
 
-#define DISTANCE 10
-
 // Struktur zum Cachen der unveränderlichen Map-Matching-Daten pro Track
 struct CachedTrack {
     std::string filename;
-    std::vector<uint64_t> ids;
     std::vector<Edge*> matchSet;
     Coordinates startPoint;
     Coordinates endPoint;
@@ -47,11 +44,13 @@ int main()
     try
     {
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
-        Router router(osmPath, "weightsnew.csv");
+        Router router(osmPath, "weights_empty.csv");
         GPXParser parser;
         Routes routes(router);
 
-        parser.loadGPXFiles(std::string(PROJECT_SOURCE_DIR) + "/testdata/gpxdata");
+        parser.loadGPXFiles(std::string(PROJECT_SOURCE_DIR) + "/testdata/brouterdata");
+
+        std::string loggingPath = "brouter_highway_logs";
 
         // ---------------------------------------------------------
         // PHASE 1: PRE-COMPUTATION (Map-Matching cachen)
@@ -64,30 +63,12 @@ int main()
             if(!router.getQuadtree().getBoundary().contains(points[0])) continue;
 
             std::cout << "Matching " << filename << std::endl;
-            
-            std::vector<std::tuple<uint64_t, Coordinates>> matchedTrack = parser.mapMatching(router, points);
-            
-            Path coordinates;
-            std::vector<uint64_t> ids;
-            
-            for(uint32_t i = 0; i < matchedTrack.size(); i++)
-            {
-                auto &[id, coords] = matchedTrack[i];
-                coordinates.emplace_back(coords);
-                if(id && id < 0x00FFFFFFFFFFFFFF)
-                {
-                    ids.emplace_back(id);
-                }
-            }
 
-            if(ids.empty()) continue;
-
-            auto matchSet = routes.getEdgeSet(coordinates);
+            auto matchSet = routes.getEdgeSet(points);
             auto tagsMatched = routes.getParameterLengthMap(matchSet);
 
             trainingData.push_back({
                 filename, 
-                ids, 
                 matchSet, 
                 points.front(), 
                 points.back(),
@@ -102,7 +83,7 @@ int main()
         const int EPOCHS = 250; 
         const double LEARNING_RATE = 0.05; // Hyperparameter für kleinere, stabilere Schritte
 
-        std::ofstream epochs(std::format("xall_d{}s{}init0.2.csv", DISTANCE, static_cast<int>(LEARNING_RATE * 100)));
+        std::ofstream epochs(std::format("{}/{}.csv", loggingPath, loggingPath));
         epochs << "epoche;kostendifferenz;längendifferenz;mean_jaccard\n";
 
         for (int epoch = 1; epoch <= EPOCHS; ++epoch)
@@ -122,16 +103,7 @@ int main()
             // 1. A* Routing mit AKTUELLEN Gewichten für alle Tracks
             for(const auto &track : trainingData)
             {
-                std::vector<Edge *> edgeSet;
-
-                for(uint32_t i = 0; i < track.ids.size(); i += DISTANCE)
-                {
-                    auto result = router.aStarEdges(track.ids[i], track.ids[std::min<uint32_t>(i + DISTANCE, track.ids.size() - 1)], true);
-                    edgeSet.insert(edgeSet.end(), result.begin(), result.end());
-                }
-
-                edgeSet.emplace_back(router.getQuadtree().getClosestEdges(track.startPoint)[0].edge);
-                edgeSet.emplace_back(router.getQuadtree().getClosestEdges(track.endPoint)[0].edge);
+                std::vector<Edge *> edgeSet = router.aStarEdges(track.startPoint, track.endPoint, true);
                 routes.prepareEdgeSet(edgeSet);
 
                 double jaccard = routes.getJaccardCoefficient(edgeSet, track.matchSet);
@@ -211,15 +183,11 @@ int main()
             }
 
             // Log-Datei für diese Epoche öffnen
-            std::string logPath = std::format("xlogs2/weights_epoch_{:03d}.csv", epoch);
-            std::ofstream file(logPath);
-            file << "#parameter,weight\n";
-
-            double minimumWeight = 0;
+            std::string logPath = std::format("{}/weights_epoch_{:03d}.csv", loggingPath, epoch);
 
             for(auto &[key, value, difference] : tagsDifferenceVector)
             {
-                if(value == "unknown")
+                //if(value == "unknown")
                 {
                     //continue;
                 }
@@ -229,8 +197,8 @@ int main()
                 
                 double currentWeight = router.getWeights().getWeight(key, value);
 
-                //std::string highwayValue = value.substr(0, value.find("|"));
-                //std::string surfaceValue = value.substr(value.find("|") + 1);
+                std::string highwayValue = value.substr(0, value.find("|"));
+                std::string surfaceValue = value.substr(value.find("|") + 1);
 
                 //double minimumNegativeWeight = router.getWeights().getWeight("highway", highwayValue) + router.getWeights().getWeight("surface", surfaceValue);
                 constexpr double minimumNegativeWeight = 0;
@@ -239,22 +207,12 @@ int main()
                 // Bei deinem vorherigen Code hast du die Lernrate weggelassen (=1.0). 
                 // Ein Faktor entschärft Oszillationen.
                 double newWeight = std::max(-minimumNegativeWeight, currentWeight - (LEARNING_RATE * normedgradient));
-                //double newWeight = currentWeight - (LEARNING_RATE * normedgradient);
-                if(newWeight < minimumWeight) minimumWeight = newWeight;
                 
                 // --- WICHTIG: Gewicht im RAM updaten! ---
                 // Du benötigst vermutlich eine Setter-Funktion in deiner Weights-Klasse.
                 router.getWeights().setWeight(key, value, newWeight);
-                
-                //file << std::format("{},{},{}\n", key, value, newWeight);
             }
-
-            for(auto &[key, value, difference] : tagsDifferenceVector)
-            {
-                //router.getWeights().setWeight(key, value, router.getWeights().getWeight(key, value) - minimumWeight);
-            }
-            
-            file.close();
+            router.getWeights().saveWeights(logPath);
             std::cout << "Gewichte in " << logPath << " gespeichert.\n\n";
         }
 

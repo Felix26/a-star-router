@@ -14,7 +14,7 @@ int main()
     try
     {
         const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
-        Router router(osmPath);
+        Router router(osmPath, "weights.csv");
 
         Routes routeHandler(router);
 
@@ -50,9 +50,13 @@ int main()
         double coefficient4 = routeHandler.getJaccardCoefficient(edgeSet4, edgeSet4m);
         double coefficient5 = routeHandler.getJaccardCoefficient(edgeSet5, edgeSet5m);
 
-        std::cout << std::format("{}, {}, {}, {}, {}\n", coefficient1, coefficient2, coefficient3, coefficient4, coefficient5);
+        double average = coefficient1 + coefficient2 + coefficient3 + coefficient4 + coefficient5;
+        average /= 5;
 
-        HelperFunctions::saveEdgesAsGeoJSON(edgeSet4);
+        std::cout << std::format("{:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}\n", coefficient1, coefficient2, coefficient3, coefficient4, coefficient5);
+        std::cout << std::format("{:.4f}\n", average);
+
+        HelperFunctions::saveEdgesAsGeoJSON(edgeSet3);
     }
     catch (const std::exception &e)
     {

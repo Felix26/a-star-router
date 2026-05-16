@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <unordered_set>
+#include <string>
 
 #include <libxml/xmlreader.h>
 
@@ -81,6 +83,18 @@ namespace HelperFunctions
             }
         }
 
+        void combineTags(Parameters& params, const std::string& key1, const std::string& key2)
+        {
+            std::string v1 = params.getParameter(key1);
+            std::string v2 = params.getParameter(key2);
+
+            // Nur kombinieren, wenn beide vorhanden und nicht "unknown"
+            if (!v1.empty() && v1 != "unknown" && !v2.empty() && v2 != "unknown")
+            {
+                params.setParameter("cross:" + key1 + "_" + key2, v1 + "|" + v2);
+            }
+        }
+
         void processWayElement(xmlTextReaderPtr reader, ankerl::unordered_dense::map<uint64_t, std::shared_ptr<OsmNode>> &nodes, ankerl::unordered_dense::map<uint64_t, std::unique_ptr<OsmWay>> &ways)
         {
             const std::string idStr = getAttributeValue(reader, "id");
@@ -103,11 +117,16 @@ namespace HelperFunctions
             std::vector<uint64_t> nodeRefs;
             Parameters wayParameters;
 
-            // wayParameters.setParameter("lit", "unknown");
-            // wayParameters.setParameter("maxspeed", "unknown");
-            // wayParameters.setParameter("tracktype", "unknown");
-            wayParameters.setParameter("surface", "unknown");
-            // wayParameters.setParameter("smoothness", "unknown");
+            static const std::unordered_set<std::string> relevantKeys = {
+                "highway"/*, "surface", "tracktype", "smoothness", "lit",
+                "trail_visibility", "foot", "bicycle", "motor_vehicle", 
+                "access", "maxspeed", "sidewalk", "sidewalk:left", "sidewalk:right",*/
+            };
+
+            // 1. VOR dem XML-Loop: Alles fair auf "unknown" initialisieren
+            for (const auto& key : relevantKeys) {
+                wayParameters.setParameter(key, "unknown");
+            }
 
             if (!xmlTextReaderIsEmptyElement(reader))
             {
@@ -125,37 +144,18 @@ namespace HelperFunctions
 
                         if (xmlStrcmp(childName, BAD_CAST "tag") == 0)
                         {
-                            if (getAttributeValue(reader, "k") == "highway")
+                            std::string key = getAttributeValue(reader, "k");
+                            
+                            if (relevantKeys.find(key) != relevantKeys.end())
                             {
-                                isHighway = true;
-                                std::string highwayTag = getAttributeValue(reader, "v");
-                                wayParameters.setParameter("highway", highwayTag);
+                                std::string value = getAttributeValue(reader, "v");
+                                wayParameters.setParameter(key, value);
+                                
+                                if (key == "highway")
+                                {
+                                    isHighway = true;
+                                }
                             }
-                            // if (getAttributeValue(reader, "k") == "lit")
-                            // {
-                            //     std::string litTag = getAttributeValue(reader, "v");
-                            //     wayParameters.setParameter("lit", litTag);
-                            // }
-                            // if (getAttributeValue(reader, "k") == "maxspeed")
-                            // {
-                            //     std::string maxspeedTag = getAttributeValue(reader, "v");
-                            //     wayParameters.setParameter("maxspeed", maxspeedTag);
-                            // }
-                            if (getAttributeValue(reader, "k") == "surface")
-                            {
-                                std::string surfaceTag = getAttributeValue(reader, "v");
-                                wayParameters.setParameter("surface", surfaceTag);
-                            }
-                            // if (getAttributeValue(reader, "k") == "tracktype")
-                            // {
-                            //     std::string tracktypeTag = getAttributeValue(reader, "v");
-                            //     wayParameters.setParameter("tracktype", tracktypeTag);
-                            // }
-                            // if (getAttributeValue(reader, "k") == "smoothness")
-                            // {
-                            //     std::string smoothnessTag = getAttributeValue(reader, "v");
-                            //     wayParameters.setParameter("smoothness", smoothnessTag);
-                            // }
                         }
                         else if (xmlStrcmp(childName, BAD_CAST "nd") == 0)
                         {
@@ -213,7 +213,9 @@ namespace HelperFunctions
                 return;
             }
 
-            wayParameters.setParameter("combination", wayParameters.getParameter("highway") + "|" + wayParameters.getParameter("surface"));
+            //combineTags(wayParameters, "highway", "surface");
+            //combineTags(wayParameters, "surface", "smoothness");
+            //combineTags(wayParameters, "sidewalk:left", "sidewalk:right");
 
             way->setParameters(wayParameters);
 
@@ -486,13 +488,13 @@ namespace HelperFunctions
         return {}; 
     }
 
-    void saveEdgesAsGeoJSON(const std::vector<Edge *> &edges)
+    void saveEdgesAsGeoJSON(const std::vector<Edge *> &edges, const std::string &additionalReference)
     {
         // Statische Variable behält ihren Wert über Funktionsaufrufe hinweg
         static int fileCounter = 1;
         
         // Dateiname zusammenbauen (z.B. debug_route_1.geojson)
-        std::string filename = "debug_route_" + std::to_string(fileCounter++) + ".geojson";
+        std::string filename = "debug_route_" + std::to_string(fileCounter++) + additionalReference + ".geojson";
         
         std::ofstream file(filename);
         if (!file.is_open()) {

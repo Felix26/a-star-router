@@ -103,7 +103,7 @@ void GPXParser::calculateSnapPenalties()
 
 bool GPXParser::doRouting(const Coordinates &start, const Coordinates &end, Router &router, std::vector<std::tuple<uint64_t, Coordinates>> &pathContainer) const
 {
-    auto path = router.aStar(start, end, 1);
+    auto path = router.aStar(start, end, 1, true);
     pathContainer.insert(pathContainer.end(), path.begin(), path.end());
 
     return !path.empty();

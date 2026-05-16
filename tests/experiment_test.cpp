@@ -16,13 +16,11 @@ int main()
 {
     try
     {
-        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/neureut.osm";
+        const std::string osmPath = std::string(PROJECT_SOURCE_DIR) + "/testdata/Karlsruhe_Region.osm";
 
         Router router(osmPath);
 
-        Coordinates testCoordinates = {49.055824, 8.385704};
-
-        std::cout << (std::get<1>(router.getEdgeSplit(testCoordinates)) & 0x00FFFFFFFFFFFFFF);
+        std::cout << (router.getQuadtree().getBoundary().getBottomLeft()) << "; " << router.getQuadtree().getBoundary().getTopRight() << std::endl;
     }
     catch (const std::exception &e)
     {

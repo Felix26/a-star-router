@@ -103,6 +103,21 @@ std::vector<Edge *> Router::aStarEdges(uint64_t startId, uint64_t goalId, bool u
     return path;
 }
 
+std::vector<Edge *> Router::aStarEdges(Coordinates startCoords, Coordinates goalCoords, bool useWeighting)
+{
+    auto [closestStartPoint, closestStartEdgeId, startSegment] = getEdgeSplit(startCoords);
+    uint64_t newNodeIdStart = mGraph->addSplit(closestStartPoint, closestStartEdgeId, startSegment);
+
+    auto [closestEndPoint, closestEndEdgeId, endSegment] = getEdgeSplit(goalCoords);
+    uint64_t newNodeIdEnd = mGraph->addSplit(closestEndPoint, closestEndEdgeId, endSegment);
+
+    auto edges = aStarEdges(newNodeIdStart, newNodeIdEnd, useWeighting);
+
+    mGraph->removeSplitItems();
+
+    return edges;
+}
+
 void Router::aStarRouting(uint64_t &startId, uint64_t &goalId, uint8_t snapToRoads, bool useWeighting)
 {
     if(useWeighting && !mWeights)

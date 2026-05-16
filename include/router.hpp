@@ -23,6 +23,7 @@ class Router
         std::vector<std::tuple<uint64_t, Coordinates>> aStar(Coordinates startCoords, Coordinates goalCoords, uint8_t snapToRoads = 0, bool useWeighting = false);
 
         std::vector<Edge *> aStarEdges(uint64_t startId, uint64_t goalId, bool useWeighting = false);
+        std::vector<Edge *> aStarEdges(Coordinates startCoords, Coordinates goalCoords, bool useWeighting = false);
         
         std::tuple<Coordinates, uint64_t, uint8_t> getEdgeSplit(Coordinates coords) const;
         

@@ -4,6 +4,7 @@
 
 #include "router.hpp"
 #include "coordinates.hpp"
+#include "weights.hpp"
 
 class Routes
 {
@@ -12,11 +13,15 @@ class Routes
 
         std::vector<Edge *> getEdgeSet(const std::vector<Coordinates> &coordinates);
         std::vector<Edge *> getEdgeSet(const std::vector<std::tuple<uint64_t, Coordinates>> &coordinates);
+
         void prepareEdgeSet(std::vector<Edge *> &edges);
 
         double getJaccardCoefficient(const std::vector<Edge *> &edges1, const std::vector<Edge *> &edges2);
 
         std::unordered_map<std::string, std::unordered_map<std::string, double>> getParameterLengthMap(const std::vector<Edge *> &edges);
+
+        double getCost(const std::vector<Edge *> &edges, const Weights &weights) const;
+        double getLength(const std::vector<Edge *> &edges) const;
 
     private:
         Router &mRouter;

@@ -155,3 +155,25 @@ std::unordered_map<std::string, std::unordered_map<std::string, double>> Routes:
 
     return parameterLengthMap;
 }
+
+double Routes::getCost(const std::vector<Edge *> &edges, const Weights &weights) const
+{
+    double cost = 0;
+    for(const auto edge : edges)
+    {
+        cost += edge->getWeight() * (1 + weights.getWeight(edge->getParameters()));
+    }
+
+    return cost;
+}
+
+double Routes::getLength(const std::vector<Edge *> &edges) const
+{
+    double length = 0;
+    for(const auto edge : edges)
+    {
+        length += edge->getWeight();
+    }
+
+    return length;
+}
